@@ -1,6 +1,6 @@
 # Lifestyle-Trackers
 
-## Purpose: Practice using JS-based frameworks/libraries (React, Node.js, MongoDB, etc). This is an Electron app (cross-platform for web/desktop).
+The purpose of this app is to practice using JS-based frameworks/libraries (React, Node.js, MongoDB, etc). Using Electron to support cross-platform benefit (web/desktop).
 
 ### Contents:
 - Reward Palette
