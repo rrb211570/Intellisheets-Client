@@ -1,8 +1,8 @@
 # Lifestyle-Trackers
 
-The original purpose of this app was to store a couple edit-friendly tracking tables in one place, and learn about JS-based frameworks/libraries (React, Node.js, MongoDB, etc).
+The original purpose of this app was to store a couple edit-friendly tracking tables in one place, and learn about JS-related stuff (React, Node, MongoDB, etc) in the process.
 
-As I found it difficult to make editing, and resize the tables the way I wanted to, I ended up slowly simulating a spreadsheet with `<table>`. Because I had trouble disabling the auto-resizing behavior of the <table> entries when the table grew to the same dimension as the div that contained it, I chose to recreate a spreadsheet out of straight `<div>`'s. Because flexbox also shared the same auto-resizing behavior, the table/entry dimensions are now completely managed by functions that manually adjust margins/dimensions.
+As I found it difficult to make editing, and resize the tables the way I wanted to, I slowly ended up simulating a spreadsheet with `<table>`. I did not like the auto-resizing behavior of the `<table>` when it grew to the same dimension as the div that contained it, so I chose to recreate a spreadsheet out of straight `<div>`'s. Because flexbox also shared the same auto-resizing behavior, the table/entry dimensions are now completely managed by functions that manually adjust margins/dimensions.
   
 ###TODO (in vague order of priority):
   - Change history table for undo/redo, and to communicate changes to pending server db through pending autosave() function.
