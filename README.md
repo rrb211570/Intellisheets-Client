@@ -13,5 +13,5 @@ As I found it difficult to make editing, and resize the tables the way I wanted 
   - Paint format
   
 
-App entrypoint is 'my-app/src/index.js'<br>
-The actual components/functionality are in 'my-app/src/components'
+### App entrypoint is 'my-app/src/index.js'<br>
+### The actual components/functionality are in 'my-app/src/components'
