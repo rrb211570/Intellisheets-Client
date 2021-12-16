@@ -10,3 +10,6 @@ The purpose of this app is to practice using JS-based frameworks/libraries (Reac
 - Food Log (Keep track of daily food consumption)
 - NutritionBasket integration (serve instance of NutritionBasket app, which calculates nutrition of grocery list)
 - Trends
+
+App entrypoint is 'my-app/src/index.js'
+The actual components/functionality are in 'my-app/src/components'
