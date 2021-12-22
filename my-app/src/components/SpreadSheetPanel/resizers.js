@@ -5,7 +5,7 @@ function applyResizers(height, width, getSheetDimensions, setSheetDimensions, re
 
 function fixResizers(axis, height, width, getSheetDimensions, setSheetDimensions, recordChange) {
     let table = document.getElementById('spreadsheet');
-    let axisEntries = axis === 'col' ? [...table.querySelectorAll('.AxisX')] : [...table.querySelectorAll('.col0')];
+    let axisEntries = axis === 'col' ? [...table.querySelectorAll('.AxisX')].slice(1) : [...table.querySelectorAll('.col0')].slice(1);
     axisEntries.forEach(entry => {
         const resizer = document.createElement('div');
         resizer.classList.add('resizer-' + (axis === 'col' ? 'top' : 'left'));
@@ -20,27 +20,27 @@ function createResizableColumn(entry, axis, resizer, getSheetDimensions, setShee
     let y = 0;
     let h = 0;
     let w = 0;
+    const colNum = parseInt([...entry.classList].filter(name => /^col.$/.test(name))[0].slice(-1), 10);
+    const rowNum = parseInt([...entry.classList].filter(name => /^row.$/.test(name))[0].slice(-1), 10);
     let spreadSheetDimensions = [];
     let entries = [];
     let colMarginsLeft = [];
     let rowWidth = 0;
     let changeOccurred = false;
-    let table = document.getElementById('spreadsheet');
+    const table = document.getElementById('spreadsheet');
 
     const mouseDownHandler = function (e) {
         spreadSheetDimensions = getSheetDimensions();
         if (axis === 'col') {
             x = e.clientX;
             w = parseInt(window.getComputedStyle(entry).width, 10);
-            let colNum = parseInt([...entry.classList].filter(name => /^col.$/.test(name))[0].slice(-1));
-            addEntries(entries, axis, colNum, [null, w],spreadSheetDimensions); // store current state
+            addEntries(entries, axis, colNum, [null, w], spreadSheetDimensions); // store current state
             storeColMargins(colMarginsLeft, colNum);
             rowWidth = parseInt(document.getElementById('row0').style.width, 10);
         } else {
             y = e.clientY;
             h = parseInt(window.getComputedStyle(entry).height, 10);
-            let rowNum = [...entry.classList].filter(name => /^row.$/.test(name))[0].slice(-1);
-            addEntries(entries, axis, rowNum, [h, null],spreadSheetDimensions); // store current state
+            addEntries(entries, axis, rowNum, [h, null], spreadSheetDimensions); // store current state
         }
         document.addEventListener('mousemove', mouseMoveHandler);
         document.addEventListener('mouseup', mouseUpHandler);
@@ -52,7 +52,6 @@ function createResizableColumn(entry, axis, resizer, getSheetDimensions, setShee
         if (axis === 'col') {
             changeOccurred = x != e.clientX ? true : false;
             const dx = w + e.clientX - x < 0 ? -w + 1 : e.clientX - x; // set dx so as to maintain 1 pixel minimum width
-            let colNum = parseInt([...entry.classList].filter(name => /^col.$/.test(name))[0].slice(-1), 10);
             updateWidths(colNum, w, rowWidth, dx);
             updateColMargins(colNum + 1, colMarginsLeft, dx);
             let sheetWidth = spreadSheetDimensions[1] + dx;
@@ -61,7 +60,6 @@ function createResizableColumn(entry, axis, resizer, getSheetDimensions, setShee
         } else {
             changeOccurred = y != e.clientY ? true : false;
             const dy = h + e.clientY - y < 0 ? -h + 1 : e.clientY - y; // set dy so as to maintain 1 pixel minimum height
-            let rowNum = [...entry.classList].filter(name => /^row.$/.test(name))[0].slice(-1);
             updateHeights(rowNum, h, dy);
             let sheetHeight = spreadSheetDimensions[0] + dy;
             setSheetDimensions(sheetHeight, spreadSheetDimensions[1]);
@@ -75,30 +73,26 @@ function createResizableColumn(entry, axis, resizer, getSheetDimensions, setShee
         resizer.classList.remove('resizing-' + (axis === 'col' ? 'top' : 'left'));
         if (changeOccurred) {
             if (axis == 'col') {
-                let colNum = parseInt([...entry.classList].filter(name => /^col.$/.test(name))[0].slice(-1), 10);
                 let len = table.querySelectorAll(`.col${colNum}`).length;
-                let newWidth = parseInt(table.querySelector(`.col${colNum}`).style.width, 10);
+                let newWidth = parseInt(entry.style.width, 10);
                 for (let i = 0; i < len; ++i) {
                     entries[i].push([null, [['width', newWidth]]]);
                 }
-                for (let i = 1; i < (entries.length - 1) / len; ++i) {
+                for (let i = 1; i < ((entries.length - 1) / len) - 1; ++i) {
                     let newMarginLeft = parseInt(table.querySelector(`.col${colNum + i}`).style.marginLeft, 10);
                     for (let j = 0; j < len; ++j) {
                         entries[len * i + j].push([null, [['marginLeft', newMarginLeft]]]);
                     }
                 }
-                entries[len * 2].push([null, [['width', rowWidth + parseInt(entry.style.width,10) - w+4]]]);
-                console.log(rowWidth+' '+entry.style.width+' '+w);
-                for (let i = 0; i < len; ++i) {
-                    entries.push([`.row${i}`, null, [null, [['width', rowWidth]]], [null, [['width', rowWidth + entry.style.width - w]]]]);
+                for (let i = entries.length - 1 - len; i < entries.length - 1; ++i) {
+                    entries[i].push([null, [['width', parseInt(document.getElementById(`row${0}`).style.width,10)]]]);
                 }
+                entries[entries.length - 1].push([null, [['width', parseInt(document.getElementById(`row${0}`).style.width,10)+4]]]);
             } else {
-                let rowNum = [...entry.classList].filter(name => /^row.$/.test(name))[0].slice(-1);
-                let newHeight = table.querySelector(`.row${rowNum}`).style.height;
                 for (let i = 0; i < entries.length - 1; ++i) {
-                    entries[i].push([null, [['height', newHeight]]]);
+                    entries[i].push([null, [['height', parseInt(entry.style.height, 10)]]]);
                 }
-                entries[entries.length - 1].push([null, [['height', spreadSheetDimensions[0] + entry.style.height - h+4]]]);
+                entries[entries.length - 1].push([null, [['height', parseInt(document.getElementById('spreadsheet').style.height, 10)]]]);
             }
             recordChange(entries);
             changeOccurred = false;
@@ -111,7 +105,7 @@ function createResizableColumn(entry, axis, resizer, getSheetDimensions, setShee
     resizer.addEventListener('mousedown', mouseDownHandler);
 }
 
-function addEntries(entries, axis, index, [height, width],[sheetHeight, sheetWidth]) {
+function addEntries(entries, axis, index, [height, width], [sheetHeight, sheetWidth]) {
     let table = document.getElementById('spreadsheet');
     if (axis === 'col') {
         entries.push(...[...table.querySelectorAll(`.col${index}`)].map((val, idx) => {
@@ -122,6 +116,9 @@ function addEntries(entries, axis, index, [height, width],[sheetHeight, sheetWid
             entries.push(...arr.map((val, idx) => {
                 return [`.row${idx}`, `.col${index}`, [null, [['marginLeft', parseInt(val.style.marginLeft)]]]];
             }));
+        }
+        for (let i = 0; i < table.querySelectorAll(`.col0`).length; ++i) {
+            entries.push([`.row${i}`, null, [null, [['width', sheetWidth - 4]]]]);
         }
         entries.push([null, null, [null, [['width', sheetWidth]]]]);
     } else {

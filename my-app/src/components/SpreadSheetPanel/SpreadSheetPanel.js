@@ -1,8 +1,7 @@
 import React from 'react';
 import applyResizers from './resizers.js'
+import defaultSheet from './defaultSheet.js'
 
-let alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
-let newSheet = false;
 const NOCOMMAND = 0;
 const CONTROL = 1;
 const SHIFT = 2;
@@ -41,7 +40,7 @@ class SpreadSheetPanel extends React.Component {
     }
     setSheetDimensions(height, width) {
         this.setState({
-            tableHeight: height != null ? height : this.state.tableHeight,
+            tableHeight: height !== null ? height : this.state.tableHeight,
             tableWidth: width !== null ? width : this.state.tableWidth
         });
     }
@@ -53,24 +52,32 @@ class SpreadSheetPanel extends React.Component {
     }
     // entries = [ row, col, prevVal, newVal], [entry, prevVal, newVal], ... ]
     recordChange(entries) {
+        console.log(entries);
         let prevState = new Map();
         let newState = new Map();
         entries.forEach((entry) => {
-            if (!this.state.changeHistory[this.state.changeHistoryIndex].has(`${entry[0]}${entry[1]}`)) {
-                prevState.set(`${entry[0]}${entry[1]}`, entry[2]);
+            let prevEntryStyle = new Map();
+            let newEntryStyle = new Map();
+            if (this.state.changeHistory[this.state.changeHistoryIndex].has(`${entry[0]}${entry[1]}`)) {
+                let thing = this.state.changeHistory[this.state.changeHistoryIndex].get(`${entry[0]}${entry[1]}`);
+                for (const [key, value] of thing[1].entries()) {
+                    prevEntryStyle.set(key, value);
+                }
             }
-            newState.set(`${entry[0]}${entry[1]}`, entry[3]);
+            entry[2][1].forEach(stylePair => prevEntryStyle.set(stylePair[0], stylePair[1]));
+            entry[3][1].forEach(stylePair => newEntryStyle.set(stylePair[0], stylePair[1]));
+            prevState.set(`${entry[0]}${entry[1]}`, [entry[2][0], prevEntryStyle]);
+            newState.set(`${entry[0]}${entry[1]}`, [entry[3][0], newEntryStyle]);
         });
-        this.state.changeHistory[this.state.changeHistoryIndex].forEach((val, entry) => prevState.set(entry, val));
-        let arr = [...this.state.changeHistory.slice(0, this.state.changeHistoryIndex)];
-        arr.push(prevState);
-        arr.push(newState);
+        for (const [key, val] of this.state.changeHistory[this.state.changeHistoryIndex].entries()) {
+            if (!prevState.has(key)) prevState.set(key, val);
+        }
         this.setState({
-            changeHistory: arr,
+            changeHistory: [...this.state.changeHistory.slice(0, this.state.changeHistoryIndex),prevState,newState],
             changeHistoryIndex: this.state.changeHistoryIndex + 1,
         });
-        console.log(this.state.changeHistory);
         console.log(this.state.changeHistoryIndex);
+        console.log(this.state.changeHistory);
     }
     keyPressed(e) {
         switch (this.state.keyEventState) {
@@ -78,8 +85,7 @@ class SpreadSheetPanel extends React.Component {
                 if (e.key == 'Control') {
                     console.log('Control');
                     this.setState({ keyEventState: CONTROL });
-                }
-                if (e.key == 'Shift') {
+                } else if (e.key == 'Shift') {
                     console.log('Shift');
                     this.setState({ keyEventState: SHIFT });
                 }
@@ -87,8 +93,7 @@ class SpreadSheetPanel extends React.Component {
             case CONTROL:
                 if (e.key == 'z') {
                     this.undo();
-                }
-                if (e.key == 'y') {
+                } else if (e.key == 'y') {
                     this.redo();
                 }
                 break;
@@ -114,7 +119,6 @@ class SpreadSheetPanel extends React.Component {
         console.log('Undo');
         if (this.state.changeHistoryIndex > 0) {
             for (const [key, value] of this.state.changeHistory[this.state.changeHistoryIndex - 1].entries()) {
-                console.log(key);
                 if (/^\.row.null$/.test(key)) {
                     let entry = document.getElementById(key.match(/row./));
                     applyState(entry, value);
@@ -131,8 +135,21 @@ class SpreadSheetPanel extends React.Component {
     }
     redo() {
         console.log('Redo');
-        if (this.state.changeHistoryIndex != this.state.changeHistory.length - 1) {
+        if (this.state.changeHistoryIndex < this.state.changeHistory.length - 1) {
             //this.setState({changeHistoryIndex: this.state.changeHistoryIndex+1});
+            for (const [key, value] of this.state.changeHistory[this.state.changeHistoryIndex + 1].entries()) {
+                if (/^\.row.null$/.test(key)) {
+                    let entry = document.getElementById(key.match(/row./));
+                    applyState(entry, value);
+                } else if (/^nullnull$/.test(key)) {
+                    let entry = document.getElementById('spreadsheet');
+                    applyState(entry, value, this.setSheetDimensions);
+                } else {
+                    let entry = document.querySelector(key.match(/^\.row.\.col.$/));
+                    applyState(entry, value);
+                }
+            }
+            this.setState({ changeHistoryIndex: this.state.changeHistoryIndex + 1 });
         }
     }
     render() {
@@ -147,24 +164,30 @@ class SpreadSheetPanel extends React.Component {
 }
 export default SpreadSheetPanel;
 
-function applyState(entry, styleArr, func) {
+function applyState(entry, styleArr, setSheetDimensions) {
     if (styleArr[0] != null) entry.value = styleArr[0];
-    styleArr[1].forEach(([property, value]) => {
-        console.log(property + ' ' + value);
+    for (const [property, value] of styleArr[1].entries()) {
+        if (typeof setSheetDimensions !== "undefined") {
+            if(property=='height') setSheetDimensions(value, null);
+            else setSheetDimensions(null, value);
+            continue;
+        }
         switch (property) {
             case 'height':
                 entry.style.height = value + 'px';
+                if([...entry.classList].filter(name => /^col0$/.test(name)).length != 0){
+                    console.log('numAxis');
+                    entry.style.lineHeight = value + 'px';
+                }
                 if ([...entry.classList].filter(name => /^row0$/.test(name)).length == 0 &&
-                    [...entry.classList].filter(name => /^col0$/.test(name)).length == 0) {
+                    [...entry.classList].filter(name => /^col0$/.test(name)).length == 0 &&
+                    [...entry.classList].filter(name => /^col.$/.test(name)).length != 0) {
                     entry.querySelector('.input').style.height = value - 4 + 'px';
                     entry.querySelector('#cover').style.height = value + 'px';
                 }
                 break;
             case 'width':
                 entry.style.width = value + 'px';
-                if (typeof func !== "undefined") {
-                    func(null,value);
-                }
                 if ([...entry.classList].filter(name => /^row0$/.test(name)).length == 0 &&
                     [...entry.classList].filter(name => /^col0$/.test(name)).length == 0 &&
                     [...entry.classList].filter(name => /^col.$/.test(name)).length != 0) {
@@ -176,7 +199,7 @@ function applyState(entry, styleArr, func) {
                 entry.style.marginLeft = value + 'px';
                 break;
         }
-    });
+    }
 }
 
 function loadedSheet(loadedSheet) {
@@ -186,56 +209,3 @@ function loadedSheet(loadedSheet) {
     );
 }
 
-const defaultSheet = (rows, defaultHeight, cols, defaultWidth) => {
-    newSheet = true;
-    let topAxis = []; // Top Axis Row
-    topAxis.push(<div className='row0 col0 AxisX' style={{ height: `${defaultHeight}px`, width: `${defaultWidth / 2}px` }}>&nbsp;</div>)
-    for (let i = 0; i < cols; ++i) {
-        let letter = alphabet[i < 26 ? i : i % 26];
-        topAxis.push(<div className={`row0 col${i + 1} AxisX`} style={{ height: `${defaultHeight}px`, width: `${defaultWidth}px`, marginLeft: `${defaultWidth * i + defaultWidth / 2}px` }}><p>{letter}</p></div>)
-    }
-
-    let rowsArr = []; // Remaining Rows
-    for (let i = 0; i < rows; ++i) {
-        let row = [];
-        row.push(<div className={`row${i + 1} AxisY col0`} style={{ height: `${defaultHeight}px`, width: `${defaultWidth / 2}px` }}>
-            <p>{i + 1}</p>
-        </div>);
-        for (let j = 1; j < cols + 1; ++j) {
-            row.push(<div className={`row${i + 1} col${j} entry`} style={{ height: `${defaultHeight}px`, width: `${defaultWidth}px`, marginLeft: `${defaultWidth * (j - 1) + defaultWidth / 2}px` }}><input onBlur={showCoverEvent} onKeyUp={stopPropagation} onKeyDown={stopPropagation} className='input' type='text' style={{ height: `${defaultHeight - 4}px`, width: `${defaultWidth - 4}px`, border: 'none' }}></input><div id='cover' tabIndex='-1' onClickCapture={selectCell} onBlur={unselectCell} onDoubleClickCapture={hideCoverEvent} style={{ position: 'absolute', left: '0', top: '0', height: `${defaultHeight}px`, width: `${defaultWidth}px`, border: 'none' }}></div></div>)
-        }
-        rowsArr.push(row);
-    }
-
-    let table = []; // Combine Rows
-    table.push(<div id='row0' className='row0' style={{ display: 'flex', flexDirection: 'row', height: `${defaultHeight}px`, width: `${defaultWidth * cols + defaultWidth / 2}px` }}>{topAxis}</div>);
-    for (let j = 0; j < rowsArr.length; ++j) {
-        table.push(<div id={`row${j + 1}`} className={`row${j + 1}`} style={{ display: 'flex', flexDirection: 'row', height: `${defaultHeight}px`, width: `${defaultWidth * cols + defaultWidth / 2}px` }}>
-            {rowsArr[j]}
-        </div>);
-    }
-
-    return table;
-}
-
-function stopPropagation(e) {
-    e.stopPropagation();
-}
-
-function selectCell(e) {
-    e.target.focus();
-    e.target.style.border = '2px solid blue';
-}
-
-function unselectCell(e) {
-    e.target.style.border = 'none';
-}
-
-function hideCoverEvent(e) {
-    e.target.style.zIndex = -1;
-    e.target.parentElement.querySelector('.input').focus();
-}
-
-function showCoverEvent(e) {
-    e.target.parentElement.querySelector('#cover').style.zIndex = 1;
-}
