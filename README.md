@@ -6,13 +6,16 @@ As I found it difficult to make editing, and resize the tables the way I wanted 
 
 Undo/redo now works for row/col resizing events.
   
-### TODO (in vague order of priority):
-  - trigger recordEntries() on text change and format change; communicate changes to pending server db through pending autosave().
-  - Create format bar, which can be used to format table entries: I'm thinking font style/height/color, bg color, alignment, border, bold/italic/underline, transform entry to checkbox, and single-row merge-and-center (multi-row is more complicated, I might not want to do it)
-  - Contain spreadsheet inside scrollable div
-  - selected[] to copy/paste/format multiple entries at once; Requires capture of (ctrl/shift + click) events
-  - Paint format
-  
+### TODO :
+1. Implement applyTextChangeHandler() and applySelectedHandler()
+2. Update sprites for format bar, and use onClick event to apply format change on selected[]
+3. Trigger recordEntries() on format change and text input change
+4. Implement autoSave(): maybe create a separate changeTracker[] that records a list of [#row, #col] cells that were changed; this can be used in autoSave() to update server db. Or changeHistory[] can be used? Will figure it out when I get here..
+5. Format paint & copy/cut with clipboard[] - single cell
+6. Format paint & copy/cut - CTRL/SHIFT selections, row/col selection
+7. Contain spreadsheet inside scrollable div
+8. Right-click menu on axis, for new col/row, and delete row/col
+
 
 ### App entrypoint is 'my-app/src/index.js'<br>
 ### The actual components/functionality are in 'my-app/src/components'
