@@ -53,4 +53,12 @@ function showCoverEvent(e) {
     e.target.parentElement.querySelector('#cover').style.zIndex = 1;
 }
 
-export default defaultSheet;
+function loadedSheet(loadedSheet) {
+    return (
+        <div id='content'>
+        </div>
+    );
+}
+
+
+export { defaultSheet, loadedSheet };

@@ -55,7 +55,7 @@ code {
   background-color: pink;
 }
 
-.resizer-top {
+.resizer-horizontal {
   position: absolute;
   top: 0;
   right: 0;
@@ -64,7 +64,7 @@ code {
   user-select: none;
 }
 
-.resizer-left {
+.resizer-vertical {
   position: absolute;
   left: 0;
   bottom: 0;
@@ -74,12 +74,12 @@ code {
   user-select: none;
 }
 
-.resizing-top {
+.resizing-horizontal {
   border-right: 2px solid blue;
   z-index: 2;
 }
 
-.resizing-left {
+.resizing-vertical {
   border-bottom: 2px solid blue;
   z-index: 2;
 }
