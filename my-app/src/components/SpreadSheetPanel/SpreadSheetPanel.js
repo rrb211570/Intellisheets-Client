@@ -2,7 +2,7 @@ import React from 'react';
 import FormatPanel from '../FormatPanel.js'
 import {loadedSheet, defaultSheet} from './getSheet.js'
 import applyResizers from './handlers/resizingHandler.js'
-import applyTextChangeHandler from './handlers/textChangeHandler.js';
+import applyTextChangeHandlers from './handlers/textChangeHandler.js';
 import applySelectedHandler from './handlers/selectedHandler.js';
 import {updateSheetDimensions, applyChange} from './applyChange.js'
 
@@ -24,8 +24,8 @@ class SpreadSheetPanel extends React.Component {
             changeHistory: [new Map()],
             changeHistoryIndex: 0,
         }
-        this.setSheetDimensions = this.setSheetDimensions.bind(this);
         this.getSheetDimensions = this.getSheetDimensions.bind(this);
+        this.setSheetDimensions = this.setSheetDimensions.bind(this);
         this.getSelected = this.getSelected.bind(this);
         this.setSelected = this.setSelected.bind(this);
         this.recordChange = this.recordChange.bind(this);
@@ -50,11 +50,14 @@ class SpreadSheetPanel extends React.Component {
             (sum, entry) => sum + parseInt(entry.style.height), 0) + 2 * borderWidth;
         let width = parseInt(document.getElementById('row0').style.width) + 2 * borderWidth;
         applyResizers(height, width, this.getSheetDimensions, this.setSheetDimensions, this.recordChange); // resizers.js
-        applyTextChangeHandler(this.state.recordChange);
+        applyTextChangeHandlers(this.recordChange);
         applySelectedHandler(this.state.keyEventState, this.state.getSelected, this.state.setSelected);
     }
 
     // Class functions
+    getSheetDimensions() {
+        return [this.state.tableHeight, this.state.tableWidth];
+    }
     setSheetDimensions(height, width) {
         if(height===null) height = this.state.tableHeight;
         if(width===null) width = this.state.tableWidth;
@@ -62,9 +65,6 @@ class SpreadSheetPanel extends React.Component {
             tableHeight: height,
             tableWidth: width
         });
-    }
-    getSheetDimensions() {
-        return [this.state.tableHeight, this.state.tableWidth];
     }
     getSelected() {
         return this.state.selectedEntries;
@@ -100,6 +100,8 @@ class SpreadSheetPanel extends React.Component {
             changeHistory: [...this.state.changeHistory.slice(0, this.state.changeHistoryIndex), prevState, newState],
             changeHistoryIndex: this.state.changeHistoryIndex + 1,
         });
+        console.log(this.state.changeHistory);
+        console.log(this.state.changeHistoryIndex);
     }
 
     // Handle CTRL+Z/Y (undo/redo) and CTRL/SHIFT selections.

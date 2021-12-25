@@ -19,7 +19,8 @@ function updateSheetDimensions(styleArr, setSheetDimensions) {
 }
 
 function applyChange(entry, [val, styleArr]) {
-    if (val != null) entry.value = val;
+    console.log('val is:\'' +val+'\'');
+    if (val != null) entry.querySelector('input').value = val;
     for (const [property, value] of styleArr.entries()) {
         switch (property) {
             case 'height':
@@ -30,7 +31,7 @@ function applyChange(entry, [val, styleArr]) {
                 if ([...entry.classList].filter(name => /^row0$/.test(name)).length == 0 &&
                     [...entry.classList].filter(name => /^col0$/.test(name)).length == 0 &&
                     [...entry.classList].filter(name => /^col.$/.test(name)).length != 0) {
-                    entry.querySelector('.input').style.height = value - 4 + 'px';
+                    entry.querySelector('input').style.height = value - 4 + 'px';
                     entry.querySelector('#cover').style.height = value + 'px';
                 }
                 break;
@@ -39,7 +40,7 @@ function applyChange(entry, [val, styleArr]) {
                 if ([...entry.classList].filter(name => /^row0$/.test(name)).length == 0 &&
                     [...entry.classList].filter(name => /^col0$/.test(name)).length == 0 &&
                     [...entry.classList].filter(name => /^col.$/.test(name)).length != 0) {
-                    entry.querySelector('.input').style.width = value - 4 + 'px';
+                    entry.querySelector('input').style.width = value - 4 + 'px';
                     entry.querySelector('#cover').style.width = value + 'px';
                 }
                 break;

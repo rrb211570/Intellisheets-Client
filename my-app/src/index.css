@@ -84,10 +84,6 @@ code {
   z-index: 2;
 }
 
-.y-axis-head {
-  position: relative;
-}
-
 #my-table > td, th {
   position: relative;
   width: 150px;
@@ -103,14 +99,14 @@ code {
   background-color: white;
 }
 
-.AxisX, .AxisY, .col0 {
+.AxisX, .AxisY, .origin {
   position: absolute;
   border: 0.5px solid black;
   background-color:rgb(206, 206, 206);
   text-align: center;
 }
 
-.entry {
+.entryCell {
   position: absolute;
   border: 0.5px solid black;
   background-color:white;
