@@ -4,7 +4,7 @@ The original purpose of this app was to store a couple edit-friendly tracking ta
 
 As I found it difficult to make editing, and resize the tables the way I wanted to, I slowly ended up simulating a spreadsheet with `<table>`. I did not like the auto-resizing behavior of the `<table>` when it grew to the same dimension as the div that contained it, so I chose to recreate a spreadsheet out of straight `<div>`'s. Because flexbox also shared the same auto-resizing behavior, the table/entry dimensions are now completely managed by functions that manually adjust margins/dimensions.
 
-Undo/redo now works for row/col resizing events.
+Undo/redo now works for row/col resizing.
   
 ### TODO :
 1. Implement applyTextChangeHandler() and applySelectedHandler()
