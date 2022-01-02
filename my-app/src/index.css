@@ -18,7 +18,8 @@ code {
 }
 
 .page {
-  margin: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .header, .header > p {
@@ -48,10 +49,9 @@ code {
 
 .content {
   position: absolute;
-  width: 600%;
-  height: 300%;
+  width: 100%;
+  height: 100%;
   padding: 0;
-  left: 15%;
   background-color: pink;
 }
 

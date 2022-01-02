@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import { MenuPanel, FormatPanel, SpreadSheetPanel } from './components'
+import { MenuPanel, SpreadSheetPanel } from './components'
 import reportWebVitals from './reportWebVitals';
 
 function App() {
@@ -11,7 +11,6 @@ function App() {
         Lifestyle Trackers
       </div>
       <div id="pageID" className="page">
-        <MenuPanel />
         <SpreadSheetPanel outerHeight='600' outerWidth='600' defaultRowHeight='20' defaultColWidth='100' cols='5' rows='9' loadedSheet='' />
       </div>
     </div>

@@ -1,10 +1,11 @@
 import React from 'react';
 import FormatPanel from '../FormatPanel.js'
-import {loadedSheet, defaultSheet} from './getSheet.js'
+import { loadedSheet, defaultSheet } from './getSheet.js'
 import applyResizers from './handlers/resizingHandler.js'
 import applyTextChangeHandlers from './handlers/textChangeHandler.js';
 import applySelectedHandler from './handlers/selectedHandler.js';
-import {updateSheetDimensions, applyChange} from './applyChange.js'
+import { updateSheetDimensions, applyChange } from './applyChange.js'
+import Data from './data.js';
 
 const NOCOMMAND = 0;
 const CONTROL = 1;
@@ -21,14 +22,19 @@ class SpreadSheetPanel extends React.Component {
                 defaultSheet(parseInt(this.props.rows), parseInt(this.props.defaultRowHeight), parseInt(this.props.cols), parseInt(this.props.defaultColWidth)),
             selectedEntries: [],
             keyEventState: NOCOMMAND,
-            changeHistory: [new Map()],
+            changeHistory: [new Data()],
             changeHistoryIndex: 0,
+            collectedData: new Data(),
+            sentData: new Data(),
+            totalRows: this.props.rows,
+            totalCols: this.props.cols,
         }
         this.getSheetDimensions = this.getSheetDimensions.bind(this);
         this.setSheetDimensions = this.setSheetDimensions.bind(this);
         this.getSelected = this.getSelected.bind(this);
         this.setSelected = this.setSelected.bind(this);
         this.recordChange = this.recordChange.bind(this);
+        this.updateCollectedData = this.updateCollectedData.bind(this);
         this.keyPressed = this.keyPressed.bind(this);
         this.keyUpped = this.keyUpped.bind(this);
         this.undo = this.undo.bind(this);
@@ -36,8 +42,8 @@ class SpreadSheetPanel extends React.Component {
     }
     render() {
         return (
-            <div className="content" id="contentID" style={{ height: this.props.outerHeight + 'px', width: this.props.outerWidth + 'px' }}>
-                <FormatPanel />
+            <div className="content" id="contentID" style={{ height: window.innerHeight * .95, width: '100%' }}>
+                {/*<FormatPanel />*/}
                 <div id='spreadsheet' tabIndex='-1' onKeyDown={this.keyPressed} onKeyUp={this.keyUpped} style={{ height: `${this.state.tableHeight}px`, width: `${this.state.tableWidth}px`, border: '1px solid black' }}>
                     {this.state.table}
                 </div>
@@ -59,8 +65,8 @@ class SpreadSheetPanel extends React.Component {
         return [this.state.tableHeight, this.state.tableWidth];
     }
     setSheetDimensions(height, width) {
-        if(height===null) height = this.state.tableHeight;
-        if(width===null) width = this.state.tableWidth;
+        if (height === null) height = this.state.tableHeight;
+        if (width === null) width = this.state.tableWidth;
         this.setState({
             tableHeight: height,
             tableWidth: width
@@ -70,40 +76,58 @@ class SpreadSheetPanel extends React.Component {
         return this.state.selectedEntries;
     }
     setSelected(selected) {
-        this.setState({selectedEntries: selected});
+        this.setState({ selectedEntries: selected });
     }
 
     // entries = [ [#row, #col, prevVal, newVal],  ... ]
     // prev/newVal = [ text content, [['style property', 'value'], ...] ]
-    // Weaves changes from entries[] into this.state.changeHistory
+    // Weaves changes from entries[] into this.state.changeHistory[]
     recordChange(entries) {
-        let prevState = new Map();
-        let newState = new Map();
+        let prevData = new Data();
+        let newData = new Data();
+        let updatedCollectedData = new Data();
+
         entries.forEach((entry) => {
             let prevEntryStyle = new Map();
             let newEntryStyle = new Map();
-            if (this.state.changeHistory[this.state.changeHistoryIndex].has(`${entry[0]}${entry[1]}`)) {
-                let thing = this.state.changeHistory[this.state.changeHistoryIndex].get(`${entry[0]}${entry[1]}`);
-                for (const [key, value] of thing[1].entries()) {
-                    prevEntryStyle.set(key, value);
-                }
+            let rowNum = entry[0] != null ? entry[0].replace(/\D*/, '') : null;
+            let colNum = entry[1] != null ? entry[1].replace(/\D*/, '') : null;
+            let entryKey = entry[0] == null ? 'spreadsheet' : entry[1] == null ? entry[0] : 'cell' + entry[0] + entry[1];
+            if (this.state.changeHistory[this.state.changeHistoryIndex].hasEntry(entryKey)) {
+                let entry = this.state.changeHistory[this.state.changeHistoryIndex].getEntry(entryKey);
+                prevEntryStyle = entry.getStyleMap();
             }
             entry[2][1].forEach(stylePair => prevEntryStyle.set(stylePair[0], stylePair[1]));
             entry[3][1].forEach(stylePair => newEntryStyle.set(stylePair[0], stylePair[1]));
-            prevState.set(`${entry[0]}${entry[1]}`, [entry[2][0], prevEntryStyle]);
-            newState.set(`${entry[0]}${entry[1]}`, [entry[3][0], newEntryStyle]);
+            prevData.setEntry(entryKey, prevEntryStyle, rowNum, colNum, entry[2][0]);
+            newData.setEntry(entryKey, newEntryStyle, rowNum, colNum, entry[3][0]);
+
+            // update collectedData
+            this.updateCollectedData(updatedCollectedData, entryKey, newEntryStyle, rowNum, colNum, entry[3][0]);
         });
-        for (const [key, val] of this.state.changeHistory[this.state.changeHistoryIndex].entries()) {
-            if (!prevState.has(key)) prevState.set(key, val);
+        for (const [entry, data] of this.state.changeHistory[this.state.changeHistoryIndex].getEntries()) {
+            if (!prevData.hasEntry(entry)) prevData.setEntry(data.row, data.col, data.val, data.styleMap);
         }
+
         this.setState({
-            changeHistory: [...this.state.changeHistory.slice(0, this.state.changeHistoryIndex), prevState, newState],
+            changeHistory: [...this.state.changeHistory.slice(0, this.state.changeHistoryIndex), prevData, newData],
             changeHistoryIndex: this.state.changeHistoryIndex + 1,
+            collectedData: updatedCollectedData
         });
         console.log(this.state.changeHistory);
         console.log(this.state.changeHistoryIndex);
+        console.log(this.state.collectedData);
     }
-
+    updateCollectedData(updatedCollectedData, entryKey, newEntryStyle, rowNum, colNum, val) {
+        let stylePairs = new Map();
+        if (this.state.collectedData.hasEntry(entryKey)) {
+            stylePairs = this.state.collectedData.getEntry(entryKey).getStyleMap();
+        }
+        for (const [property, value] of newEntryStyle.entries()){
+            stylePairs.set(property, value)
+        }
+        updatedCollectedData.setEntry(entryKey, stylePairs, rowNum, colNum, val);
+    }
     // Handle CTRL+Z/Y (undo/redo) and CTRL/SHIFT selections.
     keyPressed(e) {
         switch (this.state.keyEventState) {
