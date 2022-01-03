@@ -11,9 +11,9 @@ class SpreadSheet {
 }
 
 class Row {
-    constructor(row, styleMap) {
-        this.row = row;
+    constructor(styleMap, row) {
         this.styleMap = styleMap;
+        this.row = row;
     }
     putStyle(property, value) {
         this.styleMap.set(property, value);
@@ -24,11 +24,11 @@ class Row {
 }
 
 class Cell {
-    constructor(row, col, val, styleMap) {
+    constructor(styleMap, row, col, val) {
+        this.styleMap = styleMap;
         this.cellRow = row;
         this.cellCol = col;
         this.val = val;
-        this.styleMap = styleMap;
     }
     putStyle(property, value) {
         this.styleMap.set(property, value);
@@ -45,8 +45,8 @@ class Data {
     setEntry(entryKey, styleMap, row, col, val) {
         this.entries.set(entryKey,
             entryKey == 'spreadsheet' ? new SpreadSheet(styleMap) :
-            !/.col./.test(entryKey) ? new Row(row, styleMap) :
-            new Cell(row, col, val, styleMap)
+            !/.col./.test(entryKey) ? new Row(styleMap, row) :
+            new Cell(styleMap, row, col, val)
         );
     }
     hasEntry(entryKey) {

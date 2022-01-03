@@ -18,10 +18,9 @@ function updateSheetDimensions(styleArr, setSheetDimensions) {
     setSheetDimensions(h,w);
 }
 
-function applyChange(entry, [val, styleArr]) {
-    console.log('val is:\'' +val+'\'');
+function applyChange(entry, val, styleMap) {
     if (val != null) entry.querySelector('input').value = val;
-    for (const [property, value] of styleArr.entries()) {
+    for (const [property, value] of styleMap.entries()) {
         switch (property) {
             case 'height':
                 entry.style.height = value + 'px';

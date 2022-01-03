@@ -85,28 +85,26 @@ class SpreadSheetPanel extends React.Component {
     recordChange(entries) {
         let prevData = new Data();
         let newData = new Data();
-        let updatedCollectedData = new Data();
+        let updatedCollectedData = this.state.collectedData;
 
         entries.forEach((entry) => {
-            let prevEntryStyle = new Map();
-            let newEntryStyle = new Map();
+            let prevStyles = new Map();
+            let newStyles = new Map();
             let rowNum = entry[0] != null ? entry[0].replace(/\D*/, '') : null;
             let colNum = entry[1] != null ? entry[1].replace(/\D*/, '') : null;
             let entryKey = entry[0] == null ? 'spreadsheet' : entry[1] == null ? entry[0] : 'cell' + entry[0] + entry[1];
             if (this.state.changeHistory[this.state.changeHistoryIndex].hasEntry(entryKey)) {
-                let entry = this.state.changeHistory[this.state.changeHistoryIndex].getEntry(entryKey);
-                prevEntryStyle = entry.getStyleMap();
+                prevStyles = this.state.changeHistory[this.state.changeHistoryIndex].getEntry(entryKey).getStyleMap();
             }
-            entry[2][1].forEach(stylePair => prevEntryStyle.set(stylePair[0], stylePair[1]));
-            entry[3][1].forEach(stylePair => newEntryStyle.set(stylePair[0], stylePair[1]));
-            prevData.setEntry(entryKey, prevEntryStyle, rowNum, colNum, entry[2][0]);
-            newData.setEntry(entryKey, newEntryStyle, rowNum, colNum, entry[3][0]);
+            entry[2][1].forEach(stylePair => prevStyles.set(stylePair[0], stylePair[1]));
+            entry[3][1].forEach(stylePair => newStyles.set(stylePair[0], stylePair[1]));
+            prevData.setEntry(entryKey, prevStyles, rowNum, colNum, entry[2][0]);
+            newData.setEntry(entryKey, newStyles, rowNum, colNum, entry[3][0]);
 
-            // update collectedData
-            this.updateCollectedData(updatedCollectedData, entryKey, newEntryStyle, rowNum, colNum, entry[3][0]);
+            this.updateCollectedData(updatedCollectedData, entryKey, newStyles.entries(), rowNum, colNum, entry[3][0]);
         });
         for (const [entry, data] of this.state.changeHistory[this.state.changeHistoryIndex].getEntries()) {
-            if (!prevData.hasEntry(entry)) prevData.setEntry(data.row, data.col, data.val, data.styleMap);
+            if (!prevData.hasEntry(entry)) prevData.setEntry(entry, data.styleMap, data.cellRow, data.cellCol, data.val);
         }
 
         this.setState({
@@ -118,12 +116,12 @@ class SpreadSheetPanel extends React.Component {
         console.log(this.state.changeHistoryIndex);
         console.log(this.state.collectedData);
     }
-    updateCollectedData(updatedCollectedData, entryKey, newEntryStyle, rowNum, colNum, val) {
+    updateCollectedData(updatedCollectedData, entryKey, styleChanges, rowNum, colNum, val) {
         let stylePairs = new Map();
         if (this.state.collectedData.hasEntry(entryKey)) {
             stylePairs = this.state.collectedData.getEntry(entryKey).getStyleMap();
         }
-        for (const [property, value] of newEntryStyle.entries()){
+        for (const [property, value] of styleChanges){
             stylePairs.set(property, value)
         }
         updatedCollectedData.setEntry(entryKey, stylePairs, rowNum, colNum, val);
@@ -168,35 +166,51 @@ class SpreadSheetPanel extends React.Component {
     undo() {
         console.log('Undo');
         if (this.state.changeHistoryIndex > 0) {
-            for (const [key, value] of this.state.changeHistory[this.state.changeHistoryIndex - 1].entries()) {
-                if (/^\.row.null$/.test(key)) {
-                    let entry = document.getElementById(key.match(/row./));
-                    applyChange(entry, value);
-                } else if (/^nullnull$/.test(key)) {
-                    updateSheetDimensions(value[1], this.setSheetDimensions);
+            let updatedCollectedData = this.state.collectedData;
+            for (const [entryKey, data] of this.state.changeHistory[this.state.changeHistoryIndex - 1].getEntries()) {
+                if (entryKey == 'spreadsheet') {
+                    updateSheetDimensions(data.styleMap, this.setSheetDimensions);
+                    this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap);
+                } else if (!/.col./.test(entryKey)) {
+                    let entry = document.getElementById(entryKey.match(/row./));
+                    applyChange(entry, data.val, data.styleMap);
+                    this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap);
                 } else {
-                    let entry = document.querySelector(key.match(/^\.row.\.col.$/));
-                    applyChange(entry, value);
+                    let entry = document.querySelector(entryKey.match(/\.row.\.col.$/));
+                    applyChange(entry, data.val, data.styleMap);
+                    this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap, data.cellRow, data.cellCol, data.val);
                 }
             }
-            this.setState({ changeHistoryIndex: this.state.changeHistoryIndex - 1 });
+            this.setState({ 
+                changeHistoryIndex: this.state.changeHistoryIndex - 1,
+                collectedData: updatedCollectedData
+            });
+            console.log(this.state.collectedData);
         }
     }
     redo() {
         console.log('Redo');
         if (this.state.changeHistoryIndex < this.state.changeHistory.length - 1) {
-            for (const [key, value] of this.state.changeHistory[this.state.changeHistoryIndex + 1].entries()) {
-                if (/^\.row.null$/.test(key)) {
-                    let entry = document.getElementById(key.match(/row./));
-                    applyChange(entry, value);
-                } else if (/^nullnull$/.test(key)) {
-                    updateSheetDimensions(value[1], this.setSheetDimensions);
+            let updatedCollectedData = this.state.collectedData;
+            for (const [entryKey, data] of this.state.changeHistory[this.state.changeHistoryIndex + 1].getEntries()) {
+                if (entryKey == 'spreadsheet') {
+                    updateSheetDimensions(data.styleMap, this.setSheetDimensions);
+                    this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap, null, null, null);
+                } else if (!/.col./.test(entryKey)) {
+                    let entry = document.getElementById(entryKey.match(/row.$/));
+                    applyChange(entry, data.val, data.styleMap);
+                    this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap, data.cellRow, null, null);
                 } else {
-                    let entry = document.querySelector(key.match(/^\.row.\.col.$/));
-                    applyChange(entry, value);
+                    let entry = document.querySelector(entryKey.match(/\.row.\.col.$/));
+                    applyChange(entry, data.val, data.styleMap);
+                    this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap, data.cellRow, data.cellCol, data.val);
                 }
             }
-            this.setState({ changeHistoryIndex: this.state.changeHistoryIndex + 1 });
+            this.setState({ 
+                changeHistoryIndex: this.state.changeHistoryIndex + 1,
+                collectedData: updatedCollectedData
+            });
+            console.log(this.state.collectedData);
         }
     }
 }
