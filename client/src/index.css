@@ -1,0 +1,105 @@
+.App {
+  text-align: center;
+  background-color: black;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.page {
+  width: 100%;
+  height: 100%;
+}
+
+.header, .header > p {
+  margin: 0;
+  padding-top: 2px;
+  padding-left: 10%;
+  line-height: 30px;
+}
+
+.menu {
+  position: absolute;
+  width: 15%;
+  text-align: center;
+  background-color: #ffcccc;
+  padding: 0;
+}
+
+.menu-button {
+  width: 80%;
+  margin: 5% 0%;
+  padding: 10% 0%;;
+}
+
+.fill {
+  background-color: black;
+}
+
+.content {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background-color: pink;
+}
+
+.resizer-horizontal {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5px;
+  cursor: col-resize;
+  user-select: none;
+}
+
+.resizer-vertical {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  vertical-align: bottom;
+  height: 5px;
+  cursor: row-resize;
+  user-select: none;
+}
+
+.resizing-horizontal {
+  border-right: 2px solid blue;
+  z-index: 2;
+}
+
+.resizing-vertical {
+  border-bottom: 2px solid blue;
+  z-index: 2;
+}
+
+#spreadsheet {
+  position: absolute;
+  background-color: white;
+  margin-left: 10%;
+}
+
+.AxisX, .AxisY, .origin {
+  position: absolute;
+  border: 0.5px solid black;
+  background-color:rgb(206, 206, 206);
+  text-align: center;
+}
+
+.entryCell {
+  position: absolute;
+  border: 0.5px solid black;
+  background-color:white;
+  text-align: center;
+}

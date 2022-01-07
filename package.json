@@ -1,0 +1,27 @@
+{
+  "name": "lifestyle-trackers",
+  "version": "1.0.0",
+  "description": "The original purpose of this app was to store a couple edit-friendly tracking tables in one place, and learn about JS-related stuff (React, Node, MongoDB, etc) in the process.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rrb211570/Lifestyle-Trackers.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rrb211570/Lifestyle-Trackers/issues"
+  },
+  "homepage": "https://github.com/rrb211570/Lifestyle-Trackers#readme",
+  "dependencies": {
+    "body-parser": "^1.19.1",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.2",
+    "mongodb": "~3.6.0",
+    "mongoose": "~5.4.0"
+  }
+}
