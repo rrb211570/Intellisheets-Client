@@ -58,6 +58,9 @@ class Data {
     getEntries() {
         return this.entries.entries();
     }
+    clear(){
+        this.entries.clear();
+    }
 }
 
 export default Data;

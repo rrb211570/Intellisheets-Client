@@ -5,7 +5,7 @@ import applyResizers from './handlers/resizingHandler/resizingHandler.js'
 import applyTextChangeHandlers from './handlers/textChangeHandler.js';
 import applySelectedHandler from './handlers/selectedHandler.js';
 import { updateSheetDimensions, applyChange } from './helpers/applyChange.js'
-import { recordChange, incorporateNewData, currentHistoryStateHasEntry, getStyleMapOfEntry_CurrentHistoryState, updateCollectedData } from './helpersBoundToSpreadSheet/recordChange.js'
+import { recordChange, updatePrevRecordedData, currentHistoryStateHasEntry, getCurrentHistoryStateEntry, updateCollectedData } from './helpersBoundToSpreadSheet/recordChange.js'
 import Data from './helpers/data.js';
 import unitTest from './testing/unitTest.js';
 
@@ -36,14 +36,14 @@ class SpreadSheetPanel extends React.Component {
         this.getSelected = this.getSelected.bind(this);
         this.setSelected = this.setSelected.bind(this);
         this.recordChange = recordChange.bind(this);
-        this.incorporateNewData = incorporateNewData.bind(this);
+        this.updatePrevRecordedData = updatePrevRecordedData.bind(this);
         this.currentHistoryStateHasEntry = currentHistoryStateHasEntry.bind(this);
-        this.getStyleMapOfEntry_CurrentHistoryState = getStyleMapOfEntry_CurrentHistoryState.bind(this);
+        this.getCurrentHistoryStateEntry = getCurrentHistoryStateEntry.bind(this);
         this.updateCollectedData = updateCollectedData.bind(this);
         this.keyPressed = this.keyPressed.bind(this);
         this.keyUpped = this.keyUpped.bind(this);
         this.undo = this.undo.bind(this);
-        this.redo = redo.bind(this);
+        this.redo = this.redo.bind(this);
     }
     render() {
         return (
@@ -60,8 +60,8 @@ class SpreadSheetPanel extends React.Component {
     componentDidMount() {
         let height = [...document.getElementsByClassName('col0')].reduce(
             (sum, entry) => sum + parseInt(entry.style.height), 0);
-        let width = parseInt(document.getElementById('row0').style.width);
-        applyResizers(height, width, this.getSheetDimensions, this.setSheetDimensions, this.recordChange); // resizers.js
+        let width = parseInt(document.getElementById('spreadsheet').style.width);
+        applyResizers(height, width, [this.getSheetDimensions, this.setSheetDimensions, this.recordChange]); // resizers.js
         applyTextChangeHandlers(this.recordChange);
         applySelectedHandler(this.state.keyEventState, this.state.getSelected, this.state.setSelected);
         /*this.callBackendAPI()
@@ -120,10 +120,10 @@ class SpreadSheetPanel extends React.Component {
         switch (this.state.keyEventState) {
             case NOCOMMAND:
                 if (e.key == 'Control') {
-                    console.log('Control');
+                    //console.log('Control');
                     this.setState({ keyEventState: CONTROL });
                 } else if (e.key == 'Shift') {
-                    console.log('Shift');
+                    //console.log('Shift');
                     this.setState({ keyEventState: SHIFT });
                 }
                 break;
@@ -141,19 +141,18 @@ class SpreadSheetPanel extends React.Component {
     keyUpped(e) {
         switch (this.state.keyEventState) {
             case NOCOMMAND:
-                console.log('NO COMMAND UP');
+                //console.log('NO COMMAND UP');
                 break;
             case CONTROL:
             case SHIFT:
                 if (e.key == 'Control' || e.key == 'Shift') {
-                    console.log('CTRL/SHIFT UP');
+                    //console.log('CTRL/SHIFT UP');
                     this.setState({ keyEventState: NOCOMMAND });
                 }
                 break;
         }
     }
     undo() {
-        console.log('Undo');
         if (this.state.changeHistoryIndex > 0) {
             let updatedCollectedData = this.state.collectedData;
             for (const [entryKey, data] of this.state.changeHistory[this.state.changeHistoryIndex - 1].getEntries()) {
@@ -170,35 +169,36 @@ class SpreadSheetPanel extends React.Component {
                     this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap, data.cellRow, data.cellCol, data.val);
                 }
             }
+            console.log('Undo: changeHistoryIndex: '+(this.state.changeHistoryIndex-1));
             this.setState((prevState) => ({
                 changeHistoryIndex: prevState.changeHistoryIndex - 1,
                 collectedData: updatedCollectedData
             }));
         }
     }
-}
-function redo() {
-    console.log('Redo');
-    if (this.state.changeHistoryIndex < this.state.changeHistory.length - 1) {
-        let updatedCollectedData = this.state.collectedData;
-        for (const [entryKey, data] of this.state.changeHistory[this.state.changeHistoryIndex + 1].getEntries()) {
-            if (entryKey == 'spreadsheet') {
-                updateSheetDimensions(data.styleMap, this.setSheetDimensions);
-                this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap, null, null, null);
-            } else if (!/.col./.test(entryKey)) {
-                let entry = document.getElementById(entryKey.match(/row.$/));
-                applyChange(entry, data.val, data.styleMap);
-                this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap, data.cellRow, null, null);
-            } else {
-                let entry = document.querySelector(entryKey.match(/\.row.\.col.$/));
-                applyChange(entry, data.val, data.styleMap);
-                this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap, data.cellRow, data.cellCol, data.val);
+    redo() {
+        if (this.state.changeHistoryIndex < this.state.changeHistory.length - 1) {
+            let updatedCollectedData = this.state.collectedData;
+            for (const [entryKey, data] of this.state.changeHistory[this.state.changeHistoryIndex + 1].getEntries()) {
+                if (entryKey == 'spreadsheet') {
+                    updateSheetDimensions(data.styleMap, this.setSheetDimensions);
+                    this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap, null, null, null);
+                } else if (!/.col./.test(entryKey)) {
+                    let entry = document.getElementById(entryKey.match(/row.$/));
+                    applyChange(entry, data.val, data.styleMap);
+                    this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap, data.cellRow, null, null);
+                } else {
+                    let entry = document.querySelector(entryKey.match(/\.row.\.col.$/));
+                    applyChange(entry, data.val, data.styleMap);
+                    this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap, data.cellRow, data.cellCol, data.val);
+                }
             }
+            console.log('Redo: changeHistoryIndex: '+(this.state.changeHistoryIndex+1));
+            this.setState((prevState) => ({
+                changeHistoryIndex: prevState.changeHistoryIndex + 1,
+                collectedData: updatedCollectedData
+            }));
         }
-        this.setState((prevState) => ({
-            changeHistoryIndex: prevState.changeHistoryIndex + 1,
-            collectedData: updatedCollectedData
-        }));
     }
 }
 export default SpreadSheetPanel;

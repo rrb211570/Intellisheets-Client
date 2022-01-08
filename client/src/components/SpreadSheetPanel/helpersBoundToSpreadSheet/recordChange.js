@@ -1,53 +1,51 @@
-import { getRowNum, getColNum, getEntryKey } from '../helpers/misc.js'
 import Data from '../helpers/data.js';
 
-function recordChange(entries) {
-    let prevData = new Data();
-    let newData = new Data();
-    let updatedCollectedData = this.state.collectedData;
-    this.incorporateNewData(entries,prevData,newData,updatedCollectedData);
+function recordChange(dataBeforeChange, dataAfterChange) {
+    let prevRecordedData = this.updatePrevRecordedData(dataBeforeChange);
+    let collectedData = this.updateCollectedData(dataAfterChange);
     this.setState({
-        changeHistory: [...this.state.changeHistory.slice(0, this.state.changeHistoryIndex), prevData, newData],
+        changeHistory: [...this.state.changeHistory.slice(0, this.state.changeHistoryIndex), prevRecordedData, dataAfterChange],
         changeHistoryIndex: this.state.changeHistoryIndex + 1,
-        collectedData: updatedCollectedData
+        collectedData: collectedData
     });
+    console.log(this.state.changeHistory);
+    console.log(this.state.changeHistoryIndex);
 }
-function incorporateNewData(entries,prevData,newData,updatedCollectedData){
-    for (const [rowClass, colClass, [prevVal, prevStyleMap], [newVal, newStyleMap]] of entries) {
-        let prevStyles = new Map();
-        let newStyles = new Map();
-        let rowNum = getRowNum(rowClass);
-        let colNum = getColNum(colClass);
-        let entryKey = getEntryKey(rowClass, colClass);
+function updatePrevRecordedData(dataBeforeChange) {
+    let updatedPrevData = new Data();
+    for (const [entryKey, data] of dataBeforeChange.getEntries()) {
+        let styleMap = new Map();
         if (this.currentHistoryStateHasEntry(entryKey)) {
-            this.getStyleMapOfEntry_CurrentHistoryState(entryKey, prevStyles)
+            styleMap = this.getCurrentHistoryStateEntry(entryKey).getStyleMap();
         }
-        for (const [property, val] of prevStyleMap) prevStyles.set(property, val);
-        for (const [property, val] of newStyleMap) newStyles.set(property, val);
-        prevData.setEntry(entryKey, prevStyles, rowNum, colNum, prevVal);
-        newData.setEntry(entryKey, newStyles, rowNum, colNum, newVal);
-
-        this.updateCollectedData(updatedCollectedData, entryKey, newStyles.entries(), rowNum, colNum, newVal);
+        for (const [property, val] of data.getStyleMap().entries()) styleMap.set(property, val);
+        updatedPrevData.setEntry(entryKey, styleMap, data.cellRow, data.cellCol, data.val);
     }
-    for (const [entry, data] of this.state.changeHistory[this.state.changeHistoryIndex].getEntries()) {
-        if (!prevData.hasEntry(entry)) prevData.setEntry(entry, data.styleMap, data.cellRow, data.cellCol, data.val);
+    for (const [entryKey, data] of this.state.changeHistory[this.state.changeHistoryIndex].getEntries()) {
+        if (!updatedPrevData.hasEntry(entryKey)) updatedPrevData.setEntry(entryKey, data.styleMap, data.cellRow, data.cellCol, data.val);
     }
+    return updatedPrevData;
 }
-function currentHistoryStateHasEntry(entryKey){
+function currentHistoryStateHasEntry(entryKey) {
     return this.state.changeHistory[this.state.changeHistoryIndex].hasEntry(entryKey);
 }
-function getStyleMapOfEntry_CurrentHistoryState(entryKey, prevStyles){
-    prevStyles = this.state.changeHistory[this.state.changeHistoryIndex].getEntry(entryKey).getStyleMap();
+function getCurrentHistoryStateEntry(entryKey) {
+    return this.state.changeHistory[this.state.changeHistoryIndex].getEntry(entryKey);
 }
-function updateCollectedData(updatedCollectedData, entryKey, styleChanges, rowNum, colNum, val) {
-    let styleMap = new Map();
-    if (this.state.collectedData.hasEntry(entryKey)) {
-        styleMap = this.state.collectedData.getEntry(entryKey).getStyleMap();
+function updateCollectedData(dataAfterChange) {
+    let updatedCollectedData = new Data();
+    for (const [entryKey, data] of dataAfterChange.getEntries()) {
+        let styleMap = new Map();
+        if (this.state.collectedData.hasEntry(entryKey)) {
+            styleMap = this.state.collectedData.getEntry(entryKey).getStyleMap();
+        }
+        for (const [property, val] of data.getStyleMap().entries()) styleMap.set(property, val);
+        updatedCollectedData.setEntry(entryKey, styleMap, data.cellRow, data.cellCol, data.val);
     }
-    for (const [property, value] of styleChanges) {
-        styleMap.set(property, value)
+    for(const [entryKey, data] of this.state.collectedData.getEntries()){
+        if(!updatedCollectedData.hasEntry(entryKey)) updatedCollectedData.setEntry(entryKey, data.styleMap, data.cellRow, data.cellCol, data.val)
     }
-    updatedCollectedData.setEntry(entryKey, styleMap, rowNum, colNum, val);
+    return updatedCollectedData;
 }
 
-export {recordChange,incorporateNewData,currentHistoryStateHasEntry,getStyleMapOfEntry_CurrentHistoryState,updateCollectedData};
+export { recordChange, updatePrevRecordedData, currentHistoryStateHasEntry, getCurrentHistoryStateEntry, updateCollectedData };

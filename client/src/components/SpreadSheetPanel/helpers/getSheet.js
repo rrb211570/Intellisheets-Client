@@ -21,9 +21,9 @@ let defaultSheet = (rows, defaultHeight, cols, defaultWidth) => {
     }
 
     let table = []; // Combine Rows
-    table.push(<div id='row0' className='row0' style={{ display: 'flex', flexDirection: 'row', height: `${defaultHeight}px`, width: `${defaultWidth * cols + defaultWidth / 2}px` }}>{topAxis}</div>);
+    table.push(<div id='row0' className='row0' style={{height: `${defaultHeight}px`}}>{topAxis}</div>);
     for (let j = 0; j < rowsArr.length; ++j) {
-        table.push(<div id={`row${j + 1}`} className={`row${j + 1}`} style={{ display: 'flex', flexDirection: 'row', height: `${defaultHeight}px`, width: `${defaultWidth * cols + defaultWidth / 2}px` }}>
+        table.push(<div id={`row${j + 1}`} className={`row${j + 1}`} style={{height: `${defaultHeight}px`, width: `${defaultWidth * cols + defaultWidth / 2}px` }}>
             {rowsArr[j]}
         </div>);
     }
@@ -60,5 +60,4 @@ function loadedSheet(loadedSheet) {
     );
 }
 
-
-export { defaultSheet, loadedSheet };
+export { defaultSheet, loadedSheet};

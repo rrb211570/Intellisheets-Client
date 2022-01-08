@@ -15,7 +15,7 @@ function App() {
         Lifestyle Trackers
       </div>
       <div id="pageID" className="page">
-        <SpreadSheetPanel outerHeight='600' outerWidth='600' defaultRowHeight='20' defaultColWidth='100' cols='5' rows='9' loadedSheet='' whichTests={[RESIZING]} />
+        <SpreadSheetPanel outerHeight='600' outerWidth='600' defaultRowHeight='20' defaultColWidth='100' cols='5' rows='9' loadedSheet='' whichTests={[]} />
       </div>
     </div>
 
