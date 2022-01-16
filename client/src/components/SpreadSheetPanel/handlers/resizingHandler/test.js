@@ -1,5 +1,4 @@
 import { getInLine, nextTurn } from '../../tests/endToEnd.js'
-import Data from '../../core/history/data.js';
 import { getResizableColData, getResizableRowData } from './resizingHandler.js'
 
 function resizersTests(turn, getSheetDimensions, getChangeHistoryAndIndex) {
