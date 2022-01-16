@@ -1,88 +1,60 @@
-import Data from "../../helpers/data";
+import Data from '../../core/history/data.js';
+import { hasClass } from '../../misc/util.js'
 
-function applyResizers(height, width, functionsBoundToState) {
-    fixResizers('AxisX', height, width, functionsBoundToState);
-    fixResizers('AxisY', height, width, functionsBoundToState);
+function applyResizers(functionsBoundToState) {
+    fixResizers('AxisX', functionsBoundToState);
+    fixResizers('AxisY', functionsBoundToState);
 }
 
-function fixResizers(axis, height, width, functionsBoundToState) {
-    const axisEntries = getEntries(axis);
+function fixResizers(axis, [getSheetDimensions, setSheetDimensions, recordChange]) {
+    const axisEntries = [...document.querySelectorAll('.' + axis)]
     axisEntries.forEach(axisCell => {
-        const resizer = document.createElement('div');
-        resizer.classList.add('resizer-' + (axis === 'AxisX' ? 'horizontal' : 'vertical'));
-        axis === 'AxisX' ? resizer.style.height = `${height}px` : resizer.style.width = `${width}px`;
-        axisCell.appendChild(resizer);
-        createResizableColumn(axisCell, axis, resizer, functionsBoundToState);
+        let resizer = axisCell.querySelector('div');
+        setResizerDimensions(resizer, getSheetDimensions);
+        if (axis == 'AxisX') createResizableCol(axisCell, resizer, [getSheetDimensions, setSheetDimensions, recordChange]);
+        else createResizableRow(axisCell, resizer, [getSheetDimensions, setSheetDimensions, recordChange])
     });
 }
 
-function getEntries(axis) {
-    if (axis === 'AxisX') return [...document.querySelectorAll('.AxisX')];
-    else if (axis === 'AxisY') return [...document.querySelectorAll('.AxisY')];
-}
-
-function createResizableColumn(axisCell, axis, resizer, [getSheetDimensions, setSheetDimensions, recordChange]) {
+function createResizableCol(axisCell, resizer, [getSheetDimensions, setSheetDimensions, recordChange]) {
     let x = 0;
-    let y = 0;
-    let h = 0;
     let w = 0;
     const colNum = parseInt([...axisCell.classList].filter(name => /^col.$/.test(name))[0].slice(-1), 10);
-    const rowNum = parseInt([...axisCell.classList].filter(name => /^row.$/.test(name))[0].slice(-1), 10);
     let spreadSheetDimensions = [];
-    let dataBeforeChange;
-    let dataAfterChange;
+    let dataBeforeChange = new Data();
+    let dataAfterChange = new Data();
     let colMarginsLeft = [];
     let changeOccurred = false;
 
     const mouseDownHandler = function (e) {
         spreadSheetDimensions = getSheetDimensions();
-        if (axis === 'AxisX') {
-            x = e.clientX;
-            w = parseInt(window.getComputedStyle(axisCell).width, 10);
-            dataBeforeChange = setData(axis, colNum, [null, w], spreadSheetDimensions); // store current state
-            storeColMargins(colMarginsLeft, colNum);
-        } else if (axis === 'AxisY') {
-            y = e.clientY;
-            h = parseInt(window.getComputedStyle(axisCell).height, 10);
-            dataBeforeChange = setData(axis, rowNum, [h, null], spreadSheetDimensions); // store current state
-        }
+        x = e.clientX;
+        w = parseInt(window.getComputedStyle(axisCell).width, 10);
+        dataBeforeChange = getResizableColData(colNum, w, spreadSheetDimensions[1]); // store current state
+        storeColMargins(colMarginsLeft, colNum);
         document.addEventListener('mousemove', mouseMoveHandler);
         document.addEventListener('mouseup', mouseUpHandler);
-        resizer.classList.add('resizing-' + (axis === 'AxisX' ? 'horizontal' : 'vertical'));
+        resizer.classList.add('resizing-horizontal');
     };
 
     // disable resizing if document.width == content.width
     const mouseMoveHandler = function (e) {
-        if (axis === 'AxisX') {
-            changeOccurred = x != e.clientX ? true : false;
-            const dx = w + e.clientX - x < 0 ? -w + 1 : e.clientX - x; // set dx so as to maintain 1 pixel minimum width
-            updateWidths(colNum, w, dx);
-            updateColMargins(colNum + 1, colMarginsLeft, dx);
-            let sheetWidth = spreadSheetDimensions[1] + dx;
-            document.querySelectorAll('.resizer-vertical').forEach(resizerDiv => resizerDiv.style.width = `${sheetWidth}px`);
-            setSheetDimensions(spreadSheetDimensions[0], sheetWidth);
-        } else {
-            changeOccurred = y != e.clientY ? true : false;
-            const dy = h + e.clientY - y < 0 ? -h + 1 : e.clientY - y; // set dy so as to maintain 1 pixel minimum height
-            updateHeights(rowNum, h, dy);
-            let sheetHeight = spreadSheetDimensions[0] + dy;
-            document.querySelectorAll('.resizer-horizontal').forEach(resizerDiv => resizerDiv.style.height = `${sheetHeight}px`);
-            setSheetDimensions(sheetHeight, spreadSheetDimensions[1]);
-        }
+        changeOccurred = x != e.clientX ? true : false;
+        const dx = w + e.clientX - x < 0 ? -w + 1 : e.clientX - x; // set dx so as to maintain 1 pixel minimum width
+        updateWidths(colNum, w, dx);
+        updateColMargins(colNum + 1, colMarginsLeft, dx);
+        let sheetWidth = spreadSheetDimensions[1] + dx;
+        document.querySelectorAll('.resizer-vertical').forEach(resizerDiv => resizerDiv.style.width = `${sheetWidth}px`);
+        setSheetDimensions(spreadSheetDimensions[0], sheetWidth);
     };
 
     const mouseUpHandler = function () {
         document.removeEventListener('mousemove', mouseMoveHandler);
         document.removeEventListener('mouseup', mouseUpHandler);
-        resizer.classList.remove('resizing-' + (axis === 'AxisX' ? 'horizontal' : 'vertical'));
+        resizer.classList.remove('resizing-horizontal');
         if (changeOccurred) {
-            if (axis == 'AxisX') {
-                let newWidth = parseInt(axisCell.style.width, 10);
-                dataAfterChange = setData(axis, colNum, [null, newWidth], getSheetDimensions())
-            } else {
-                let newHeight = document.querySelector(`.row${rowNum}`).style.height;
-                dataAfterChange = setData(axis, rowNum, [newHeight, null], getSheetDimensions())
-            }
+            let newWidth = parseInt(axisCell.style.width, 10);
+            dataAfterChange = getResizableColData(colNum, newWidth, getSheetDimensions()[1]);
             recordChange(dataBeforeChange, dataAfterChange);
             changeOccurred = false;
         }
@@ -94,37 +66,93 @@ function createResizableColumn(axisCell, axis, resizer, [getSheetDimensions, set
 
     resizer.addEventListener('mousedown', mouseDownHandler);
 }
-
-function setData(axis, index, [height, width], [sheetHeight, sheetWidth]) {
+function createResizableRow(axisCell, resizer, [getSheetDimensions, setSheetDimensions, recordChange]) {
+    let y = 0;
+    let h = 0;
+    const rowNum = parseInt([...axisCell.classList].filter(name => /^row.$/.test(name))[0].slice(-1), 10);
+    let spreadSheetDimensions = [];
     let dataBeforeChange = new Data();
-    if (axis === 'AxisX') {
-        document.querySelectorAll(`.col${index}`).forEach((col, idx) => {
-            let styleMap = new Map();
-            styleMap.set('width', width);
-            dataBeforeChange.setEntry(`.row${idx}.col${index}`, styleMap, idx, index, null);
-        });
-        let arr = [];
-        while ((arr = [...document.querySelectorAll(`.col${++index}`)]).length != 0) {
-            arr.forEach((col, idx) => {
-                let styleMap = new Map();
-                styleMap.set('marginLeft', parseInt(col.style.marginLeft));
-                dataBeforeChange.setEntry(`.row${idx}.col${index}`, styleMap, idx, index, null);
-            });
+    let dataAfterChange = new Data();
+    let changeOccurred = false;
+
+    const mouseDownHandler = function (e) {
+        spreadSheetDimensions = getSheetDimensions();
+        y = e.clientY;
+        h = parseInt(window.getComputedStyle(axisCell).height, 10);
+        dataBeforeChange = getResizableRowData(rowNum, h, spreadSheetDimensions[0]); // store current state
+        document.addEventListener('mousemove', mouseMoveHandler);
+        document.addEventListener('mouseup', mouseUpHandler);
+        resizer.classList.add('resizing-vertical');
+    };
+
+    // disable resizing if document.width == content.width
+    const mouseMoveHandler = function (e) {
+        changeOccurred = y != e.clientY ? true : false;
+        const dy = h + e.clientY - y < 0 ? -h + 1 : e.clientY - y; // set dy so as to maintain 1 pixel minimum height
+        updateHeights(rowNum, h, dy);
+        let sheetHeight = spreadSheetDimensions[0] + dy;
+        document.querySelectorAll('.resizer-horizontal').forEach(resizerDiv => resizerDiv.style.height = `${sheetHeight}px`);
+        setSheetDimensions(sheetHeight, spreadSheetDimensions[1]);
+    };
+
+    const mouseUpHandler = function () {
+        document.removeEventListener('mousemove', mouseMoveHandler);
+        document.removeEventListener('mouseup', mouseUpHandler);
+        resizer.classList.remove('resizing-vertical');
+        if (changeOccurred) {
+            let newHeight = parseInt(axisCell.style.height, 10);
+            dataAfterChange = getResizableRowData(rowNum, newHeight, getSheetDimensions()[0])
+            recordChange(dataBeforeChange, dataAfterChange);
+            changeOccurred = false;
         }
+        spreadSheetDimensions = [];
+        dataBeforeChange.clear()
+        dataAfterChange.clear();
+    };
+
+    resizer.addEventListener('mousedown', mouseDownHandler);
+}
+
+//---------------------------------------------------------------
+// ----------- BASEMENT -----------------------------------------
+//---------------------------------------------------------------
+
+function setResizerDimensions(resizer, getSheetDimensions) {
+    if (hasClass(resizer, 'resizer-horizontal')) resizer.style.height = `${getSheetDimensions()[0]}px`;
+    else resizer.style.width = `${getSheetDimensions()[1]}px`;
+}
+
+function getResizableColData(index, width, sheetWidth) {
+    let myData = new Data();
+    document.querySelectorAll(`.col${index}`).forEach((col, idx) => {
         let styleMap = new Map();
-        styleMap.set('width', sheetWidth);
-        dataBeforeChange.setEntry(`spreadsheet`, styleMap);
-    } else {
-        document.querySelectorAll(`.row${index}`).forEach((row, idx) => {
+        styleMap.set('width', width);
+        myData.setEntry(`.row${idx}.col${index}`, styleMap, idx, index, null);
+    });
+    let arr = [];
+    while ((arr = [...document.querySelectorAll(`.col${++index}`)]).length != 0) {
+        arr.forEach((col, idx) => {
             let styleMap = new Map();
-            styleMap.set('height', height);
-            dataBeforeChange.setEntry(`.row${index}` + (idx != 0 ? `.col${idx - 1}` : ''), styleMap, index, idx - 1, null);
+            styleMap.set('marginLeft', parseInt(col.style.marginLeft));
+            myData.setEntry(`.row${idx}.col${index}`, styleMap, idx, index, null);
         });
-        let styleMap = new Map();
-        styleMap.set('height', sheetHeight);
-        dataBeforeChange.setEntry(`spreadsheet`, styleMap);
     }
-    return dataBeforeChange;
+    let styleMap = new Map();
+    styleMap.set('width', sheetWidth);
+    myData.setEntry(`spreadsheet`, styleMap);
+    return myData;
+}
+function getResizableRowData(index, height, sheetHeight) {
+    let myData = new Data();
+    document.querySelectorAll(`.row${index}`).forEach((row, idx) => {
+        let styleMap = new Map();
+        styleMap.set('height', height);
+        myData.setEntry(`.row${index}` + (idx != 0 ? `.col${idx - 1}` : ''), styleMap, index, idx - 1, null);
+    });
+    let styleMap = new Map();
+    styleMap.set('height', sheetHeight);
+    myData.setEntry(`spreadsheet`, styleMap);
+    return myData;
 }
 
 function storeColMargins(colMarginsLeft, colNum) {
@@ -165,4 +193,4 @@ function updateColMargins(colIndex, colMarginsLeft, dx) {
     }
 }
 
-export default applyResizers;
+export { applyResizers, getResizableColData, getResizableRowData };

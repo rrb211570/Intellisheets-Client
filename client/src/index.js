@@ -1,12 +1,24 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { createStore } from 'redux';
+import { Provider, connect } from 'react-redux'
 import './index.css';
-import { MenuPanel, SpreadSheetPanel } from './components'
-import reportWebVitals from './reportWebVitals';
-
+import { SpreadSheetPanel } from './components'
+import { rootReducer, mapStateToProps, mapDispatchToProps, updateSheetDimensions } from './store.js'
+// test flags
 const ALL = -1;
 const RESIZING = 0;
 const TEXTCHANGE = 1;
+
+// table arguments & store initialization
+const ROWS = 3;
+const COLS = 3;
+const DEFAULTROWHEIGHT = '20';
+const DEFAULTCOLWIDTH = '100';
+
+const store = createStore(rootReducer);
+const SpreadSheetContainer = connect(mapStateToProps, mapDispatchToProps)(SpreadSheetPanel);
+store.dispatch(updateSheetDimensions((parseInt(ROWS, 10) + 1) * DEFAULTROWHEIGHT, (COLS * DEFAULTCOLWIDTH) + (DEFAULTCOLWIDTH / 2)));
 
 function App() {
   return (
@@ -15,10 +27,11 @@ function App() {
         Lifestyle Trackers
       </div>
       <div id="pageID" className="page">
-        <SpreadSheetPanel outerHeight='600' outerWidth='600' defaultRowHeight='20' defaultColWidth='100' cols='5' rows='9' loadedSheet='' whichTests={[]} />
+        <Provider store={store}>
+          <SpreadSheetContainer rows={ROWS} cols={COLS} defaultRowHeight={DEFAULTROWHEIGHT} defaultColWidth={DEFAULTCOLWIDTH} whichTests={[RESIZING]} />
+        </Provider>
       </div>
     </div>
-
   );
 }
 
@@ -28,8 +41,3 @@ ReactDOM.render(
   </React.StrictMode>,
   document.getElementById('root')
 );
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();

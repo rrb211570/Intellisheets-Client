@@ -1,24 +1,24 @@
 // Need to separate this from applyState(), since setSheedDimensions -> setState()
 // does not re-render properly on sequential calls
-function updateSheetDimensions(styleArr, setSheetDimensions) {
+function updateSheetDimensions(styleMap, setSheetDimensions) {
     let h = null;
     let w = null;
-    for (const [property, value] of styleArr.entries()) {
+    for (const [property, value] of styleMap.entries()) {
         if (typeof setSheetDimensions !== "undefined") {
             if (property == 'height') h = value;
             else if (property == 'width') w = value;
         }
     }
-    document.getElementById('spreadsheet').querySelectorAll('.resizer-horizontal').forEach(resizer =>{
-        if(h!=null) resizer.style.height = h+'px';
+    document.getElementById('spreadsheet').querySelectorAll('.resizer-horizontal').forEach(resizer => {
+        if (h != null) resizer.style.height = h + 'px';
     });
-    document.getElementById('spreadsheet').querySelectorAll('.resizer-vertical').forEach(resizer =>{
-        if(w!=null) resizer.style.width = w+'px';
+    document.getElementById('spreadsheet').querySelectorAll('.resizer-vertical').forEach(resizer => {
+        if (w != null) resizer.style.width = w + 'px';
     });
-    setSheetDimensions(h,w);
+    setSheetDimensions(h, w);
 }
 
-function applyChange(entry, val, styleMap) {
+function applyChange(entry, styleMap, val) {
     if (val != null) entry.querySelector('input').value = val;
     for (const [property, value] of styleMap.entries()) {
         switch (property) {
@@ -50,4 +50,4 @@ function applyChange(entry, val, styleMap) {
     }
 }
 
-export {updateSheetDimensions, applyChange};
+export { updateSheetDimensions, applyChange };

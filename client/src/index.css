@@ -33,7 +33,7 @@ code {
   position: absolute;
   width: 15%;
   text-align: center;
-  background-color: #ffcccc;
+  background-color: white;
   padding: 0;
 }
 
@@ -52,7 +52,7 @@ code {
   width: 100%;
   height: 100%;
   padding: 0;
-  background-color: pink;
+  background-color: #C2A8FF;
 }
 
 .resizer-horizontal {

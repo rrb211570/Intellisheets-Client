@@ -1,13 +1,11 @@
 import React from 'react';
-import FormatPanel from '../FormatPanel.js'
-import { loadedSheet, defaultSheet } from './helpers/getSheet.js'
-import applyResizers from './handlers/resizingHandler/resizingHandler.js'
+import { loadedSheet, defaultSheet } from './core/serverCalls/loadTable/getSheet.js'
+import { applyResizers } from './handlers/resizingHandler/resizingHandler.js'
 import applyTextChangeHandlers from './handlers/textChangeHandler.js';
 import applySelectedHandler from './handlers/selectedHandler.js';
-import { updateSheetDimensions, applyChange } from './helpers/applyChange.js'
-import { recordChange, updatePrevRecordedData, currentHistoryStateHasEntry, getCurrentHistoryStateEntry, updateCollectedData } from './helpersBoundToSpreadSheet/recordChange.js'
-import Data from './helpers/data.js';
-import unitTest from './testing/unitTest.js';
+import { recordChange } from './core/history/newInteraction/recordChange.js';
+import {undo, redo} from './core/history/traverseHistory/undoRedo.js'
+import { unitTest } from './tests/endToEnd.js';
 
 const NOCOMMAND = 0;
 const CONTROL = 1;
@@ -17,51 +15,38 @@ class SpreadSheetPanel extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            tableHeight: (parseInt(this.props.rows,10) +1) * this.props.defaultRowHeight,
-            tableWidth: (this.props.cols * this.props.defaultColWidth) + (this.props.defaultColWidth / 2),
-            table: this.props.loadedSheet.length !== 0 ?
-                loadedSheet(this.props.loadedSheet) :
-                defaultSheet(parseInt(this.props.rows), parseInt(this.props.defaultRowHeight), parseInt(this.props.cols), parseInt(this.props.defaultColWidth)),
-            selectedEntries: [],
+            table: defaultSheet(parseInt(this.props.rows), parseInt(this.props.cols), parseInt(this.props.defaultRowHeight), parseInt(this.props.defaultColWidth)),
             keyEventState: NOCOMMAND,
-            changeHistory: [new Data()],
-            changeHistoryIndex: 0,
-            collectedData: new Data(),
-            sentData: new Data(),
             serverTest: 'blah',
-            loadedSheet: ''
         }
         this.getSheetDimensions = this.getSheetDimensions.bind(this);
         this.setSheetDimensions = this.setSheetDimensions.bind(this);
-        this.getSelected = this.getSelected.bind(this);
+        this.getChangeHistoryAndIndex = this.getChangeHistoryAndIndex.bind(this);
         this.setSelected = this.setSelected.bind(this);
-        this.recordChange = recordChange.bind(this);
-        this.updatePrevRecordedData = updatePrevRecordedData.bind(this);
-        this.currentHistoryStateHasEntry = currentHistoryStateHasEntry.bind(this);
-        this.getCurrentHistoryStateEntry = getCurrentHistoryStateEntry.bind(this);
-        this.updateCollectedData = updateCollectedData.bind(this);
         this.keyPressed = this.keyPressed.bind(this);
         this.keyUpped = this.keyUpped.bind(this);
-        this.undo = this.undo.bind(this);
-        this.redo = this.redo.bind(this);
+
+        // imported
+        this.recordChange = recordChange.bind(this);
+        this.undo = undo.bind(this);
+        this.redo = redo.bind(this);
     }
     render() {
         return (
             <div className="content" id="contentID" style={{ height: window.innerHeight * .95, width: '100%' }}>
                 {/*<FormatPanel />*/}
+                <div>{this.props.tableHeight + ' ' + this.props.tableWidth}</div>
                 <div>{this.state.serverTest}</div>
                 <div>{this.state.loadedSheet}</div>
-                <div id='spreadsheet' tabIndex='-1' onKeyDown={this.keyPressed} onKeyUp={this.keyUpped} style={{ height: `${this.state.tableHeight}px`, width: `${this.state.tableWidth}px`, border: '1px solid black' }}>
+                <div id='spreadsheet' tabIndex='-1' onKeyDown={this.keyPressed} onKeyUp={this.keyUpped} style={{ height: `${this.props.tableHeight}px`, width: `${this.props.tableWidth}px`, border: '1px solid black' }}>
                     {this.state.table}
                 </div>
             </div>
         );
     }
     componentDidMount() {
-        let height = [...document.getElementsByClassName('col0')].reduce(
-            (sum, entry) => sum + parseInt(entry.style.height), 0);
-        let width = parseInt(document.getElementById('spreadsheet').style.width);
-        applyResizers(height, width, [this.getSheetDimensions, this.setSheetDimensions, this.recordChange]); // resizers.js
+        console.log(this.props);
+        applyResizers([this.getSheetDimensions, this.setSheetDimensions, this.recordChange]); // resizers.js
         applyTextChangeHandlers(this.recordChange);
         applySelectedHandler(this.state.keyEventState, this.state.getSelected, this.state.setSelected);
         /*this.callBackendAPI()
@@ -70,7 +55,7 @@ class SpreadSheetPanel extends React.Component {
         this.callSheetLoaderAPI()
             .then(res => this.setState({ loadedSheet: [res.username, res._id, res.sheets] }))
             .catch(err => console.log(err));*/
-        if (this.props.whichTests.length != 0) unitTest(this.props.whichTests);
+        if (this.props.whichTests.length != 0) unitTest(this.props.whichTests, this.getSheetDimensions, this.getChangeHistoryAndIndex);
     }
     callBackendAPI = async () => {
         const response = await fetch('/express_backend');
@@ -97,23 +82,18 @@ class SpreadSheetPanel extends React.Component {
         return body;
     }
     getSheetDimensions() {
-        return [this.state.tableHeight, this.state.tableWidth];
+        return [this.props.tableHeight, this.props.tableWidth];
     }
     setSheetDimensions(height, width) {
-        this.setState((prevState) => {
-            if (height === null) height = prevState.tableHeight;
-            if (width === null) width = prevState.tableWidth;
-            return {
-                tableHeight: height,
-                tableWidth: width
-            }
-        });
+        if (height === null) height = this.props.tableHeight;
+        if (width === null) width = this.props.tableWidth;
+        this.props.updateSheetDimensions(height, width);
     }
-    getSelected() {
-        return this.state.selectedEntries;
+    getChangeHistoryAndIndex(){
+        return [this.props.changeHistory, this.props.changeHistoryIndex];
     }
-    setSelected(selected) {
-        this.setState({ selectedEntries: selected });
+    setSelected(entries) {
+        this.props.updateSelected(entries);
     }
     // Handle CTRL+Z/Y (undo/redo) and CTRL/SHIFT selections.
     keyPressed(e) {
@@ -150,54 +130,6 @@ class SpreadSheetPanel extends React.Component {
                     this.setState({ keyEventState: NOCOMMAND });
                 }
                 break;
-        }
-    }
-    undo() {
-        if (this.state.changeHistoryIndex > 0) {
-            let updatedCollectedData = this.state.collectedData;
-            for (const [entryKey, data] of this.state.changeHistory[this.state.changeHistoryIndex - 1].getEntries()) {
-                if (entryKey == 'spreadsheet') {
-                    updateSheetDimensions(data.styleMap, this.setSheetDimensions);
-                    this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap);
-                } else if (!/.col./.test(entryKey)) {
-                    let entry = document.getElementById(entryKey.match(/row./));
-                    applyChange(entry, data.val, data.styleMap);
-                    this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap);
-                } else {
-                    let entry = document.querySelector(entryKey.match(/\.row.\.col.$/));
-                    applyChange(entry, data.val, data.styleMap);
-                    this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap, data.cellRow, data.cellCol, data.val);
-                }
-            }
-            console.log('Undo: changeHistoryIndex: '+(this.state.changeHistoryIndex-1));
-            this.setState((prevState) => ({
-                changeHistoryIndex: prevState.changeHistoryIndex - 1,
-                collectedData: updatedCollectedData
-            }));
-        }
-    }
-    redo() {
-        if (this.state.changeHistoryIndex < this.state.changeHistory.length - 1) {
-            let updatedCollectedData = this.state.collectedData;
-            for (const [entryKey, data] of this.state.changeHistory[this.state.changeHistoryIndex + 1].getEntries()) {
-                if (entryKey == 'spreadsheet') {
-                    updateSheetDimensions(data.styleMap, this.setSheetDimensions);
-                    this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap, null, null, null);
-                } else if (!/.col./.test(entryKey)) {
-                    let entry = document.getElementById(entryKey.match(/row.$/));
-                    applyChange(entry, data.val, data.styleMap);
-                    this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap, data.cellRow, null, null);
-                } else {
-                    let entry = document.querySelector(entryKey.match(/\.row.\.col.$/));
-                    applyChange(entry, data.val, data.styleMap);
-                    this.updateCollectedData(updatedCollectedData, entryKey, data.styleMap, data.cellRow, data.cellCol, data.val);
-                }
-            }
-            console.log('Redo: changeHistoryIndex: '+(this.state.changeHistoryIndex+1));
-            this.setState((prevState) => ({
-                changeHistoryIndex: prevState.changeHistoryIndex + 1,
-                collectedData: updatedCollectedData
-            }));
         }
     }
 }
