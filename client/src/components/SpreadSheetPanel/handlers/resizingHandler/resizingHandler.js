@@ -60,8 +60,6 @@ function createResizableCol(axisCell, resizer, [getSheetDimensions, setSheetDime
         }
         colMarginsLeft = [];
         spreadSheetDimensions = [];
-        dataBeforeChange.clear()
-        dataAfterChange.clear();
     };
 
     resizer.addEventListener('mousedown', mouseDownHandler);
@@ -101,13 +99,11 @@ function createResizableRow(axisCell, resizer, [getSheetDimensions, setSheetDime
         resizer.classList.remove('resizing-vertical');
         if (changeOccurred) {
             let newHeight = parseInt(axisCell.style.height, 10);
-            dataAfterChange = getResizableRowData(rowNum, newHeight, getSheetDimensions()[0])
+            dataAfterChange = getResizableRowData(rowNum, newHeight, getSheetDimensions()[0]);
             recordChange(dataBeforeChange, dataAfterChange);
             changeOccurred = false;
         }
         spreadSheetDimensions = [];
-        dataBeforeChange.clear()
-        dataAfterChange.clear();
     };
 
     resizer.addEventListener('mousedown', mouseDownHandler);

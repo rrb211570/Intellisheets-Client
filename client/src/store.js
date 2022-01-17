@@ -15,7 +15,8 @@ const historyReducer = (state = {
     sentData: new Data()
 }, action) => {
     switch (action.type) {
-        case NEWSTATE: return {
+        case NEWSTATE:
+        return {
             changeHistory: [...state.changeHistory.slice(0, state.changeHistoryIndex), action.prevRecordedData, action.dataAfterChange],
             changeHistoryIndex: state.changeHistoryIndex + 1,
             collectedData: action.collectedData,

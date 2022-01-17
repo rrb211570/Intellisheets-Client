@@ -4,7 +4,7 @@ import { applyResizers } from './handlers/resizingHandler/resizingHandler.js'
 import applyTextChangeHandlers from './handlers/textChangeHandler.js';
 import applySelectedHandler from './handlers/selectedHandler.js';
 import { recordChange } from './core/history/newInteraction/recordChange.js';
-import {undo, redo} from './core/history/traverseHistory/undoRedo.js'
+import { undo, redo } from './core/history/traverseHistory/undoRedo.js'
 import { unitTest } from './tests/endToEnd.js';
 
 const NOCOMMAND = 0;
@@ -89,7 +89,7 @@ class SpreadSheetPanel extends React.Component {
         if (width === null) width = this.props.tableWidth;
         this.props.updateSheetDimensions(height, width);
     }
-    getChangeHistoryAndIndex(){
+    getChangeHistoryAndIndex() {
         return [this.props.changeHistory, this.props.changeHistoryIndex];
     }
     setSelected(entries) {
@@ -99,18 +99,18 @@ class SpreadSheetPanel extends React.Component {
     keyPressed(e) {
         switch (this.state.keyEventState) {
             case NOCOMMAND:
-                if (e.key == 'Control') {
+                if (e.key === 'Control' || e.key === 'Meta') {
                     //console.log('Control');
                     this.setState({ keyEventState: CONTROL });
-                } else if (e.key == 'Shift') {
+                } else if (e.key === 'Shift') {
                     //console.log('Shift');
                     this.setState({ keyEventState: SHIFT });
                 }
                 break;
             case CONTROL:
-                if (e.key == 'z') {
+                if (e.key === 'z') {
                     this.undo();
-                } else if (e.key == 'y') {
+                } else if (e.key === 'y') {
                     this.redo();
                 }
                 break;
@@ -125,7 +125,7 @@ class SpreadSheetPanel extends React.Component {
                 break;
             case CONTROL:
             case SHIFT:
-                if (e.key == 'Control' || e.key == 'Shift') {
+                if (e.key === 'Control' || e.key === 'Meta' || e.key === 'Shift') {
                     //console.log('CTRL/SHIFT UP');
                     this.setState({ keyEventState: NOCOMMAND });
                 }

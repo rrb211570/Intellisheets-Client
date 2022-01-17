@@ -1,5 +1,6 @@
 import { getInLine, nextTurn } from '../../tests/endToEnd.js'
 import { getResizableColData, getResizableRowData } from './resizingHandler.js'
+import Data from '../../core/history/data.js'
 
 function resizersTests(turn, getSheetDimensions, getChangeHistoryAndIndex) {
     console.log('\n--------RESIZING TESTs-----------------------');
@@ -80,6 +81,7 @@ function checkReactionOfResizingOnTable(axisCells, deltaIncrement, turn, getShee
                         resizer = getResizer(axisCells[index], axisClass)
                         mouseState++;
                     } else {
+                        console.log('resizing works correctly and affects changeHistory correctly');
                         nextTurn(turn); // increment turn.current
                         clearInterval(timer);
                     }
@@ -107,7 +109,7 @@ function checkReactionOfResizingOnTable(axisCells, deltaIncrement, turn, getShee
                     resizer.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true }));
                     try {
                         dimensionsAfterMove = captureResizerData(axisClass, axisCells[index], getSheetDimensions);
-                        [changeHistoryBeforeMove, changeHistoryIndexBeforeMove] = getChangeHistoryAndIndex();
+                        [changeHistoryAfterMove, changeHistoryIndexAfterMove] = getChangeHistoryAndIndex();
                         if (!expectedTableChanges(axisClass, dimensionsBeforeMove, dimensionsAfterMove, delta)) throw 'mousemove: resizer not affecting table correctly';
                         if (!expectedChangeHistoryChanges(axisClass, delta, changeHistoryBeforeMove, changeHistoryIndexBeforeMove, changeHistoryAfterMove, changeHistoryIndexAfterMove)) throw 'mousemove: resizer not affecting changeHistory properly';
                     } catch (error) {
@@ -145,12 +147,7 @@ function getResizer(axisCell, axisClass) {
     if (!resizer instanceof Element) throw 'getResizer(): resizer not found in axisCell';
     return resizer;
 }
-function getChangeHistoryBeforeMove() {
 
-}
-function getChangeHistoryAfterMove() {
-
-}
 function captureResizerData(axisClass, axisCell, getSheetDimensions) {
     if (axisClass == 'AxisX') {
         let colNum = getResizerIndex(axisClass, axisCell);
@@ -222,10 +219,49 @@ function expectedTableChanges(axisClass, dimensionsBeforeMove, dimensionsAfterMo
 }
 
 function expectedChangeHistoryChanges(axisClass, delta, changeHistoryBeforeMove, changeHistoryIndexBeforeMove, changeHistoryAfterMove, changeHistoryIndexAfterMove) {
-    try{
+    try {
+        if (changeHistoryIndexBeforeMove != changeHistoryIndexAfterMove - 1) throw 'changeHistoryIndex not updated properly';
+        // preservation
+        for (const [entryKey, value] of changeHistoryBeforeMove[changeHistoryIndexBeforeMove].getEntries()) {
+            if (!changeHistoryAfterMove[changeHistoryIndexBeforeMove].hasEntry(entryKey)) throw 'entry not preserved';
+            let valueAfterMove = changeHistoryAfterMove[changeHistoryIndexBeforeMove].getEntry(entryKey);
+            if (value.getStyleMap().size != valueAfterMove.getStyleMap().size) throw "valueAfterMove does not preserve  styleMap pairs of value";
+            let valueAfterMoveStyleMap = valueAfterMove.getStyleMap();
+            for (const [property, val] of value.getStyleMap().entries()) {
+                if (valueAfterMoveStyleMap.get(property) !== val) throw 'valueAfterMove does not preserve styleMap pairs of value';
+            }
+            if (!/.col./.test(entryKey) && entryKey !== 'spreadsheet' && value.getRow() != valueAfterMove.getRow()) throw 'valueAfterMove does not preserve row of value';
+            else if (/.col./.test(entryKey) && (value.getCellRow() != valueAfterMove.getCellRow()
+                || value.getCellCol() != valueAfterMove.getCellCol()
+                || value.getVal() != valueAfterMove.getVal())) throw 'valueAfterMove does not preserve cellRow/cellCol/val of value';
+        }
+        // check resizing is reflected in changeHistoryAfterMove
+        for (const [entryKey, valueAfterMove] of changeHistoryAfterMove[changeHistoryIndexAfterMove].getEntries()) {
+            if (valueAfterMove.getStyleMap().size != 1) throw 'unnecessary stylePair in valueAfterMove';
+            if (axisClass == 'AxisX') {
+                if (valueAfterMove.getStyleMap().has('width')) {
+                    let w = valueAfterMove.getStyleMap().get('width');
+                    if (isNaN(parseInt(w, 10)) || parseInt(w, 10) !== w) throw 'horizontal resizing not updating stylePair w/ numerical value';
+                    let valueBeforeMove = changeHistoryAfterMove[changeHistoryIndexBeforeMove].getEntry(entryKey);
+                    if(valueBeforeMove.getStyleMap().get('width')!=w-delta) throw 'width not adjusted by delta in changeHistory';
+                } else if (valueAfterMove.getStyleMap().has('marginLeft')) {
+                    let ml = valueAfterMove.getStyleMap().get('marginLeft');
+                    if (isNaN(parseInt(ml, 10)) || parseInt(ml, 10) !== ml) throw 'horizontal resizing not updating stylePair w/ numerical value';
+                    let valueBeforeMove = changeHistoryAfterMove[changeHistoryIndexBeforeMove].getEntry(entryKey);
+                    if(valueBeforeMove.getStyleMap().get('marginLeft')!=ml-delta) throw 'ml not adjusted by delta in changeHistory';
+                } else throw 'horizontal resizing has stylePair property different from height/marginLeft';
+            } else if (axisClass = 'AxisY') {
+                if (valueAfterMove.getStyleMap().has('height')) {
+                    let h = valueAfterMove.getStyleMap().get('height');
+                    if (isNaN(parseInt(h, 10)) || parseInt(h, 10) !== h) throw 'vertical resizing not updating stylePair w/ numerical value';
+                    let valueBeforeMove = changeHistoryAfterMove[changeHistoryIndexBeforeMove].getEntry(entryKey);
+                    if(valueBeforeMove.getStyleMap().get('height')!=h-delta) throw 'height not adjusted by delta in changeHistory';
+                } else throw 'vertical resizing has stylePair property different from height';
+            }
+        }
         return true;
-    }catch(error){
-        throw 'expectedChangeHistoryChanges(): '+error;
+    } catch (error) {
+        throw 'expectedChangeHistoryChanges(): ' + error;
     }
 }
 
