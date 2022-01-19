@@ -96,7 +96,7 @@ class EntryPanel extends React.Component {
         let pass2 = document.querySelector('input[name="pass2"]').value;
         if (pass == pass2) {
             this.setState({
-                passwordsMatch: true
+                passwordsMatch: true,
             });
             document.querySelector('#pass2Context').style.visibility = 'hidden';
             document.querySelector('#createAcct').removeAttribute('disabled');
