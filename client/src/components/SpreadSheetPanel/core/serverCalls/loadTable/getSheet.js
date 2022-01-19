@@ -16,7 +16,7 @@ let defaultSheet = (rows, cols, defaultHeight, defaultWidth) => {
             <div className='resizer-vertical'></div>
         </div>);
         for (let j = 1; j < cols + 1; ++j) {
-            row.push(<div className={`row${i + 1} col${j} entryCell`} style={{ height: `${defaultHeight}px`, width: `${defaultWidth}px`, marginLeft: `${defaultWidth * (j - 1) + defaultWidth / 2}px` }}><input onBlur={showCoverEvent} onKeyUp={stopPropagation} onKeyDown={stopPropagation} type='text' style={{ height: `${defaultHeight - 4}px`, width: `${defaultWidth - 4}px`, border: 'none' }}></input><div id='cover' tabIndex='-1' onClickCapture={selectCell} onBlur={unselectCell} onDoubleClickCapture={hideCoverEvent} style={{ position: 'absolute', left: '0', top: '0', height: `${defaultHeight}px`, width: `${defaultWidth}px`, border: 'none' }}></div></div>)
+            row.push(<div className={`row${i + 1} col${j} entryCell`} style={{ height: `${defaultHeight}px`, width: `${defaultWidth}px`, marginLeft: `${defaultWidth * (j - 1) + defaultWidth / 2}px` }}><input onBlur={showCoverEvent} onKeyUp={stopPropagation} onKeyDown={stopPropagation} type='text' style={{ height: `${defaultHeight - 4}px`, width: `${defaultWidth - 4}px`, border: 'none' }}></input><div id='cover' tabIndex='-1' onMouseDown={selectCell} onBlur={unselectCell} onDoubleClickCapture={hideCoverEvent} style={{ position: 'absolute', left: '0', top: '0', height: `${defaultHeight}px`, width: `${defaultWidth}px`, border: 'none' }}></div></div>)
         }
         rowsArr.push(row);
     }

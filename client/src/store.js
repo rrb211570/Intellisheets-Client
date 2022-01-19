@@ -37,14 +37,14 @@ const historyReducer = (state = {
         case SAVE: return {
             changeHistory: state.changeHistory,
             changeHistoryIndex: state.changeHistoryIndex,
-            collectedData: null,
+            collectedData: new Data(),
             sentData: state.collectedData
         }
         case ROLLBACKANDMERGE: return {
             changeHistory: state.changeHistory,
             changeHistoryIndex: state.changeHistoryIndex,
             collectedData: rollBackAndMerge(state.collectedData, state.sentData),
-            sentData: null
+            sentData: new Data()
         }
         default: return state;
     }
@@ -106,6 +106,9 @@ const mapDispatchToProps = (dispatch) => {
         },
         updateSheetDimensions: (height, width) => {
             dispatch(updateSheetDimensions(height, width));
+        },
+        save: ()=>{
+            dispatch(saveSheet());
         }
     }
 };
@@ -148,5 +151,11 @@ const updateSheetDimensions = (height, width) => {
         tableWidth: width
     }
 };
+
+const saveSheet = ()=>{
+    return {
+        type: SAVE
+    }
+}
 
 export { rootReducer, mapStateToProps, mapDispatchToProps, updateSheetDimensions };

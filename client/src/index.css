@@ -29,24 +29,6 @@ code {
   line-height: 30px;
 }
 
-.menu {
-  position: absolute;
-  width: 15%;
-  text-align: center;
-  background-color: white;
-  padding: 0;
-}
-
-.menu-button {
-  width: 80%;
-  margin: 5% 0%;
-  padding: 10% 0%;;
-}
-
-.fill {
-  background-color: black;
-}
-
 .content {
   position: absolute;
   width: 100%;
@@ -87,19 +69,19 @@ code {
 #spreadsheet {
   position: absolute;
   background-color: white;
-  margin-left: 10%;
 }
 
 .AxisX, .AxisY, .origin {
   position: absolute;
-  border: 0.5px solid black;
-  background-color:rgb(206, 206, 206);
+  border: 0.8px solid #ACACAC;
+  background-color:#EFEFEF;
+  color: #5F5F5F;
   text-align: center;
 }
 
 .entryCell {
   position: absolute;
-  border: 0.5px solid black;
+  border: 0.5px solid #D5D5D5;
   background-color:white;
   text-align: center;
 }

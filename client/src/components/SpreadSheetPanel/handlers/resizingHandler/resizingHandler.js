@@ -19,7 +19,7 @@ function fixResizers(axis, [getSheetDimensions, setSheetDimensions, recordChange
 function createResizableCol(axisCell, resizer, [getSheetDimensions, setSheetDimensions, recordChange]) {
     let x = 0;
     let w = 0;
-    const colNum = parseInt([...axisCell.classList].filter(name => /^col.$/.test(name))[0].slice(-1), 10);
+    const colNum = parseInt([...axisCell.classList].filter(name => /^col\d+$/.test(name))[0].match(/(\d+)/)[0],10);
     let spreadSheetDimensions = [];
     let dataBeforeChange = new Data();
     let dataAfterChange = new Data();
@@ -67,7 +67,7 @@ function createResizableCol(axisCell, resizer, [getSheetDimensions, setSheetDime
 function createResizableRow(axisCell, resizer, [getSheetDimensions, setSheetDimensions, recordChange]) {
     let y = 0;
     let h = 0;
-    const rowNum = parseInt([...axisCell.classList].filter(name => /^row.$/.test(name))[0].slice(-1), 10);
+    const rowNum = parseInt([...axisCell.classList].filter(name => /^row\d+$/.test(name))[0].match(/(\d+)/)[0],10);
     let spreadSheetDimensions = [];
     let dataBeforeChange = new Data();
     let dataAfterChange = new Data();

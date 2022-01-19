@@ -45,7 +45,7 @@ class Row {
     getStyleMap() {
         return this.#styleMap;
     }
-    getRow(){
+    getRow() {
         return this.#row;
     }
     putStyle(property, value) {
@@ -60,7 +60,7 @@ class Row {
         this.#styleMap = styleMap;
     }
     setRow(row) {
-        if (parseInt(row, 10) === NaN || parseInt(row, 10) !== row) throw 'Data:Row:setRow: row param must be valid num';
+        if (isNaN(parseInt(row, 10)) || parseInt(row, 10) !== row) throw 'Data:Row:setRow: row param must be valid num';
         this.#row = row;
     }
     clearStyleMap() {
@@ -82,7 +82,6 @@ class Cell {
         }
         if (isNaN(parseInt(row, 10)) || parseInt(row, 10) !== row) throw 'Data:Cell:constructor: row param must be valid num';
         if (isNaN(parseInt(col, 10)) || parseInt(col, 10) !== col) throw 'Data:Cell:constructor: col param must be valid num';
-        if (!isNaN(parseInt(val, 10)) && parseInt(val, 10) !== val) throw 'Data:Cell:constructor: val param must be null or valid num';
         this.#styleMap = styleMap;
         this.#cellRow = row;
         this.#cellCol = col;
@@ -120,7 +119,6 @@ class Cell {
         this.#cellCol = col;
     }
     setVal(val) {
-        if (isNaN(parseInt(val, 10)) || parseInt(val, 10) !== val) throw 'Data:Cell:setVal: val param must be valid num';
         this.#val = val;
     }
     clearStyleMap() {

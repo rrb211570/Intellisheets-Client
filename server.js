@@ -24,6 +24,10 @@ let userSchema = new Schema({
     sheets: [
         {
             id: String,
+            rows: String,
+            cols: String,
+            dateCreated: String,
+            dateModified: String,
             data: [{
                 entryKey: String,
                 col: String,
@@ -35,7 +39,8 @@ let userSchema = new Schema({
                 }]
             }]
         }
-    ]
+    ],
+    latestSheetID: String
 });
 let User = mongoose.model('User', userSchema);
 
@@ -44,7 +49,7 @@ app.post('/api/users', (req, res) => {
         username: req.body.username,
         sheets: []
     });
-    let result = user.save((err, newUser) => {
+    user.save((err, newUser) => {
         if (err) {
             console.log('Error: newUser(): save(): ' + err);
             res.json({ error: err });
@@ -53,7 +58,61 @@ app.post('/api/users', (req, res) => {
                 if (err) {
                     console.log('Error: newUser(): findById(): ' + err);
                     res.json({ error: err });
-                } else res.json({ username: pers.username, _id: pers._id, sheets: pers.sheets});
+                } else res.json({ username: pers.username, _id: pers._id, sheets: pers.sheets });
+            });
+        }
+    });
+});
+
+app.post('/api/users/sheetPreview', (req, res) => {
+    let user = User({
+        username: req.body.username,
+        sheets: []
+    });
+    user.findOne({ sessionToken: req.body.sessionToken }, (err, newUser) => {
+        if (err) {
+            console.log('Error: sheetPreview(): findOne(): ' + err);
+            res.json({ error: err });
+        } else {
+            User.findById(newUser._id, function (err, pers) {
+                if (err) {
+                    console.log('Error: sheetPreview(): findById(): ' + err);
+                    res.json({ error: err });
+                } else res.json({
+                    username: pers.username, _id: pers._id, sheetPreviews: pers.sheets.map((sheet) => {
+                        return {
+                            title: sheet.title,
+                            id: sheet.id
+                        }
+                    })
+                });
+            });
+        }
+    });
+});
+
+app.post('/api/users/:_sheetID', (req, res) => {
+    let user = User({
+        username: req.body.username,
+        sheets: []
+    });
+    user.findOne({ sessionToken: req.body.sessionToken}, (err, newUser) => {
+        if (err) {
+            console.log('Error: sheetPreview(): findOne(): ' + err);
+            res.json({ error: err });
+        } else {
+            User.findById(newUser._id, function (err, pers) {
+                if (err) {
+                    console.log('Error: sheetPreview(): findById(): ' + err);
+                    res.json({ error: err });
+                } else res.json({
+                    username: pers.username, _id: pers._id, sheetPreviews: pers.sheets.map((sheet) => {
+                        return {
+                            title: sheet.title,
+                            id: sheet.id
+                        }
+                    })
+                });
             });
         }
     });

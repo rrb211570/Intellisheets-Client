@@ -10,10 +10,10 @@ function applyTextChangeHandlers(recordChange) {
 function applyTextChangeHandler(entryCell, recordChange) {
     let changeOccurred = false;
     const input = entryCell.querySelector('input');
-    const row = [...entryCell.classList].filter(name => /^row.$/.test(name))[0];
-    const col = [...entryCell.classList].filter(name => /^col.$/.test(name))[0];
-    let rowNum = parseInt(row.slice(-1), 10);
-    let colNum = parseInt(col.slice(-1), 10);
+    const row = [...entryCell.classList].filter(name => /^row\d+$/.test(name))[0];
+    const col = [...entryCell.classList].filter(name => /^col\d+$/.test(name))[0];
+    let rowNum = parseInt(row.match(/(\d+)/)[0],10);
+    let colNum = parseInt(col.match(/(\d+)/)[0],10);
     let prevData = new Data();
     let newData = new Data();
     let uselessStyleMap = new Map();

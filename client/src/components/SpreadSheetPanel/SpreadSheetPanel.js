@@ -17,7 +17,8 @@ class SpreadSheetPanel extends React.Component {
         this.state = {
             table: defaultSheet(parseInt(this.props.rows), parseInt(this.props.cols), parseInt(this.props.defaultRowHeight), parseInt(this.props.defaultColWidth)),
             keyEventState: NOCOMMAND,
-            serverTest: 'blah',
+            sheetID: '',
+            user: ''
         }
         this.getSheetDimensions = this.getSheetDimensions.bind(this);
         this.setSheetDimensions = this.setSheetDimensions.bind(this);
@@ -25,61 +26,30 @@ class SpreadSheetPanel extends React.Component {
         this.setSelected = this.setSelected.bind(this);
         this.keyPressed = this.keyPressed.bind(this);
         this.keyUpped = this.keyUpped.bind(this);
+        this.autoSave = this.autoSave.bind(this);
 
         // imported
         this.recordChange = recordChange.bind(this);
         this.undo = undo.bind(this);
         this.redo = redo.bind(this);
     }
-    render() {
-        return (
-            <div className="content" id="contentID" style={{ height: window.innerHeight * .95, width: '100%' }}>
-                {/*<FormatPanel />*/}
-                <div>{this.props.tableHeight + ' ' + this.props.tableWidth}</div>
-                <div>{this.state.serverTest}</div>
-                <div>{this.state.loadedSheet}</div>
-                <div id='spreadsheet' tabIndex='-1' onKeyDown={this.keyPressed} onKeyUp={this.keyUpped} style={{ height: `${this.props.tableHeight}px`, width: `${this.props.tableWidth}px`, border: '1px solid black' }}>
-                    {this.state.table}
-                </div>
-            </div>
-        );
-    }
     componentDidMount() {
         console.log(this.props);
         applyResizers([this.getSheetDimensions, this.setSheetDimensions, this.recordChange]); // resizers.js
         applyTextChangeHandlers(this.recordChange);
         applySelectedHandler(this.state.keyEventState, this.state.getSelected, this.state.setSelected);
-        /*this.callBackendAPI()
-            .then(res => this.setState({ serverTest: res.express }))
-            .catch(err => console.log(err));
-        this.callSheetLoaderAPI()
-            .then(res => this.setState({ loadedSheet: [res.username, res._id, res.sheets] }))
-            .catch(err => console.log(err));*/
         if (this.props.whichTests.length != 0) unitTest(this.props.whichTests, this.getSheetDimensions, this.getChangeHistoryAndIndex);
+        this.autoSave();
     }
-    callBackendAPI = async () => {
-        const response = await fetch('/express_backend');
-        const body = await response.json();
-
-        if (response.status !== 200) {
-            throw Error(body.message)
-        }
-        return body;
-    };
-    callSheetLoaderAPI = async () => {
-        const response = await fetch('/api/users', {
-            method: "POST",
-            body: JSON.stringify({
-                username: 'Rocky'
-            }),
-            headers: { "Content-Type": "application/json; charset=UTF-8" }
-        });
-        const body = await response.json();
-
-        if (response.status !== 200) {
-            throw Error(body.message)
-        }
-        return body;
+    render() {
+        return (
+            <div className="content" id="contentID" style={{ height: window.innerHeight * .95, width: '100%' }}>
+                {/*<FormatPanel />*/}
+                <div id='spreadsheet' tabIndex='-1' onKeyDown={this.keyPressed} onKeyUp={this.keyUpped} style={{ height: `${this.props.tableHeight}px`, width: `${this.props.tableWidth}px` }}>
+                    {this.state.table}
+                </div>
+            </div>
+        );
     }
     getSheetDimensions() {
         return [this.props.tableHeight, this.props.tableWidth];
@@ -132,5 +102,44 @@ class SpreadSheetPanel extends React.Component {
                 break;
         }
     }
+    autoSave() {
+        let timer;
+        if (this.props.visibleSheet) {
+            timer = setInterval(() => {
+                console.log('autoSave()');
+                console.log(this.props.collectedData);
+                console.log(this.props.sentData);
+                if (this.props.collectedData !== null && [...this.props.collectedData.getEntries()].length != 0) {
+                    /*this.saveAPI()
+                        .then(res => console.log('saveStatus: ' + res.saveStatus))
+                        .catch(err => {
+                            console.log('saveError: ' + err);
+                            clearInterval(timer);
+                        });*/
+                    this.props.save();
+                    console.log('saved');
+                    console.log(this.props.sentData);
+                }
+            }, 5000);
+        } else {
+            clearInterval(timer);
+        }
+    }
+    saveAPI = async () => {
+        const response = await fetch('/api/users/' + this.state.user + '/' + this.state.sheetID, {
+            method: "POST",
+            body: JSON.stringify({
+                token: this.state.sessionToken,
+                collectedData: this.props.collectedData
+            }),
+            headers: { "Content-Type": "application/json; charset=UTF-8" }
+        });
+        const body = await response.json();
+
+        if (response.status !== 200) {
+            throw Error(body.message)
+        }
+        return body;
+    };
 }
 export default SpreadSheetPanel;
