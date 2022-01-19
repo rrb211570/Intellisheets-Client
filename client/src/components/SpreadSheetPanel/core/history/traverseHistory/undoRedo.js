@@ -6,11 +6,11 @@ function undo() {
         let updatedCollectedData = this.props.collectedData;
         for (const [entryKey, data] of this.props.changeHistory[this.props.changeHistoryIndex - 1].getEntries()) {
             if (entryKey == 'spreadsheet') updateSheetDimensions(data.getStyleMap(), this.setSheetDimensions);
-            else if (!/.col./.test(entryKey)) {
-                let entry = document.getElementById(entryKey.match(/row./));
+            else if (!/.col\d+/.test(entryKey)) {
+                let entry = document.getElementById(entryKey.match(/row\d+/));
                 applyChange(entry, data.getStyleMap());
             } else {
-                let entry = document.querySelector(entryKey.match(/\.row.\.col.$/));
+                let entry = document.querySelector(entryKey.match(/\.row\d+\.col\d+$/));
                 applyChange(entry, data.getStyleMap(), data.getVal());
             }
         }
@@ -26,10 +26,10 @@ function redo() {
             if (entryKey == 'spreadsheet') {
                 updateSheetDimensions(data.getStyleMap(), this.setSheetDimensions);
             } else if (!/.col./.test(entryKey)) {
-                let entry = document.getElementById(entryKey.match(/row.$/));
+                let entry = document.getElementById(entryKey.match(/row\d+$/));
                 applyChange(entry, data.getStyleMap());
             } else {
-                let entry = document.querySelector(entryKey.match(/\.row.\.col.$/));
+                let entry = document.querySelector(entryKey.match(/\.row\d+\.col\d+$/));
                 applyChange(entry, data.getStyleMap(), data.getVal())
             }
         }
