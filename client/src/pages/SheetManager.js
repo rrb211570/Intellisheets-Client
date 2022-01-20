@@ -21,24 +21,19 @@ class Manager extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            user: '',
+            user: 'bamfry',
             pass: '',
             sheetPreviews: []
         }
     }
     componentDidMount() {
-        /*this.callSheetLoaderAPI()
+        this.callSheetLoaderAPI(this.state.user)
             .then(res => console.log(res.username + ' ' + res._id + ' ' + res.sheets))
-            .catch(err => console.log(err));*/
+            .catch(err => console.log(err));
     }
-    callSheetLoaderAPI = async () => {
-        const response = await fetch('/api/users', {
-            method: "POST",
-            body: JSON.stringify({
-                username: 'Rocky Balboa231'
-            }),
-            headers: { "Content-Type": "application/json; charset=UTF-8" }
-        });
+    callSheetLoaderAPI = async (user) => {
+        console.log(user);
+        const response = await fetch('/api/userSheets/?user='+user);
         const body = await response.json();
 
         if (response.status !== 200) {

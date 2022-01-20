@@ -9,7 +9,7 @@ class EntryPanel extends React.Component {
             validPass: false,
             passwordsMatch: false,
         }
-        this.signUpHandler = this.signUpHandler.bind(this);
+        this.signUpHandler = this.signUpHandler.bind(this)
         this.backToHome = this.backToHome.bind(this);
         this.userChanged = this.userChanged.bind(this);
         this.passChanged = this.passChanged.bind(this);
@@ -28,6 +28,7 @@ class EntryPanel extends React.Component {
                         <p id='passContext' style={{ visibility: 'hidden' }}>Must contain at least 6 alphabetical characters and 2 non-alphabetical characters</p>
                         <input type='text' name='pass2' placeholder='Retype Password' onChange={this.pass2Changed} style={{ margin: '10% 10% 0% 10%', visibility: 'hidden' }} disabled ></input>
                         <p id='pass2Context' style={{ visibility: 'hidden' }}>Passwords must match</p>
+                        <p id='createContext' style={{ visibility: 'hidden' }}>* Username is taken *</p>
                         <button id='createAcct' style={{ margin: '10% 10% 0% 10%', visibility: 'hidden' }} disabled onClick={this.signUpHandler} >Create Account</button>
                         <button style={{ margin: '10% 10% 0% 10%' }} onClick={this.backToHome}>Back to Home</button>
                     </div>
@@ -38,9 +39,24 @@ class EntryPanel extends React.Component {
     signUpHandler() {
         let user = document.querySelector('input[name="user"]').value;
         let pass = document.querySelector('input[name="pass"]').value;
-        console.log('pair: ' + user + ' ' + pass);
-        this.props.nav(`/sheets?user=${user}&pass=${pass}`);
+        console.log('login credentials: ' + user + ' ' + pass);
+        this.createUserIfAvailable(user, pass)
+            .then(res => {
+                if(res.usernameAvailable) this.props.nav(`/sheets?user=${user}&pass=${pass}`);
+                else document.querySelector('#createContext').style.visibility = 'visible';
+            })
+            .catch(err => {
+                console.log('signUp API error: ' + err);
+            });
     }
+    createUserIfAvailable = async (user, pass) => {
+        const response = await fetch('/newuser/'+user+'/'+pass);
+        const body = await response.json();
+        if (response.status !== 200) {
+            throw Error(body.error)
+        }
+        return body;
+    };
     backToHome() {
         this.props.nav('/')
     }
@@ -50,6 +66,7 @@ class EntryPanel extends React.Component {
             this.setState({
                 validUser: true
             });
+            document.querySelector('#createContext').style.visibility = 'hidden';
             document.querySelector('#userContext').style.visibility = 'hidden';
             document.querySelector('#passTitle').style.visibility = 'visible';
             document.querySelector('input[name="pass"]').style.visibility = 'visible';

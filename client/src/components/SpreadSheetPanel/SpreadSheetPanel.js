@@ -110,12 +110,12 @@ class SpreadSheetPanel extends React.Component {
                 console.log(this.props.collectedData);
                 console.log(this.props.sentData);
                 if (this.props.collectedData !== null && [...this.props.collectedData.getEntries()].length != 0) {
-                    /*this.saveAPI()
+                    this.saveAPI()
                         .then(res => console.log('saveStatus: ' + res.saveStatus))
                         .catch(err => {
                             console.log('saveError: ' + err);
                             clearInterval(timer);
-                        });*/
+                        });
                     this.props.save();
                     console.log('saved');
                     console.log(this.props.sentData);
