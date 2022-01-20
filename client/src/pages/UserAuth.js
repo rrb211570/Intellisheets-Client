@@ -25,7 +25,7 @@ function UserAuth() {
             <div style={{ margin: '2% 10% 2% 55%', width: '20%', height: '100%', border: '2px solid black' }}>
                 <div style={{ margin: '10%', display: 'flex', flexDirection: 'column' }}>
                     <input type='text' name='user' placeholder='Username' style={{ margin: '10% 10% 0% 10%' }} onChange={clearErrorHandler}></input>
-                    <input type='text' name='pass' placeholder='Password' style={{ margin: '10% 10% 0% 10%' }} onChange={clearErrorHandler}></input>
+                    <input type='password' name='pass' placeholder='Password' style={{ margin: '10% 10% 0% 10%' }} onChange={clearErrorHandler}></input>
                     <p id='credentialsCheck' style={{ visibility: 'hidden' }}>* Invalid username or password *</p>
                     <button style={{ margin: '10% 10% 0% 10%' }} onClick={logInHandler}>Log In</button>
                     <p style={{ textAlign: 'center', margin: '0% 0% 4% 0%' }}>__________________________________________</p>
