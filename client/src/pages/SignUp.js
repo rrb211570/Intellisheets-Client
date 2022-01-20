@@ -24,9 +24,9 @@ class EntryPanel extends React.Component {
                         <input type='text' name='user' style={{ margin: '10% 10% 0% 10%' }} onChange={this.userChanged}></input>
                         <p id='userContext' style={{ visibility: 'hidden' }}>Username must only contain alphanumeric characters</p>
                         <p id='passTitle' style={{ visibility: 'hidden' }}>Select password</p>
-                        <input type='text' name='pass' style={{ margin: '10% 10% 0% 10%', visibility: 'hidden' }} onChange={this.passChanged}></input>
+                        <input type='password' name='pass' style={{ margin: '10% 10% 0% 10%', visibility: 'hidden' }} onChange={this.passChanged}></input>
                         <p id='passContext' style={{ visibility: 'hidden' }}>Must contain at least 6 alphabetical characters and 2 non-alphabetical characters</p>
-                        <input type='text' name='pass2' placeholder='Retype Password' onChange={this.pass2Changed} style={{ margin: '10% 10% 0% 10%', visibility: 'hidden' }} disabled ></input>
+                        <input type='password' name='pass2' placeholder='Retype Password' onChange={this.pass2Changed} style={{ margin: '10% 10% 0% 10%', visibility: 'hidden' }} disabled ></input>
                         <p id='pass2Context' style={{ visibility: 'hidden' }}>Passwords must match</p>
                         <p id='createContext' style={{ visibility: 'hidden' }}>* Username is taken *</p>
                         <button id='createAcct' style={{ margin: '10% 10% 0% 10%', visibility: 'hidden' }} disabled onClick={this.signUpHandler} >Create Account</button>

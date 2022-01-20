@@ -33,7 +33,7 @@ class SheetPage extends React.Component {
         return (
             <div>
                 <div className="header" style={{ height: window.innerHeight * .05 }}>
-                    Lifestyle Trackers
+                    data
                 </div>
                 <button onClick={this.NavtoSheetManager}>{'<- Back'}</button>
                 <div id="pageID" className="page">

@@ -160,8 +160,8 @@ function captureResizerData(axisClass, axisCell, getSheetDimensions) {
     }
 }
 function getResizerIndex(axisClass, axisCell) {
-    if (axisClass == 'AxisX') return parseInt([...axisCell.classList].filter(name => /^col.$/.test(name))[0].slice(-1), 10);
-    else return parseInt([...axisCell.classList].filter(name => /^row.$/.test(name))[0].slice(-1), 10);
+    if (axisClass == 'AxisX') return parseInt([...axisCell.classList].filter(name => /^col\d+$/.test(name))[0].match(/(\d+)/)[0],10);
+    else return parseInt([...axisCell.classList].filter(name => /^row\d+$/.test(name))[0].match(/(\d+)/)[0], 10);
 }
 // check that when delta is applied to all width/marginLeft values in dimensionsBeforeMove,
 // that it is reflected in dimensionsAfterMove
