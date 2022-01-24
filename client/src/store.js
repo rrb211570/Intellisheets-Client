@@ -1,4 +1,4 @@
-import { combineReducers } from 'redux';
+import { combineReducers, createStore } from 'redux';
 import Data from './components/SpreadSheetPanel/core/history/data.js'
 const NEWSTATE = 'NEWSTATE';
 const UNDO = 'UNDO';
@@ -7,6 +7,7 @@ const UPDATESELECTED = 'UPDATESELECTED';
 const UPDATESHEETDIMENSIONS = 'UPDATESHEETDIMENSIONS';
 const SAVE = 'SAVE';
 const ROLLBACKANDMERGE = 'ROLLBACKANDMERGE';
+const LOGIN = 'LOGIN';
 
 const historyReducer = (state = {
     changeHistory: [new Data()],
@@ -15,8 +16,7 @@ const historyReducer = (state = {
     sentData: new Data()
 }, action) => {
     switch (action.type) {
-        case NEWSTATE:
-        return {
+        case NEWSTATE: return {
             changeHistory: [...state.changeHistory.slice(0, state.changeHistoryIndex), action.prevRecordedData, action.dataAfterChange],
             changeHistoryIndex: state.changeHistoryIndex + 1,
             collectedData: action.collectedData,
@@ -72,10 +72,21 @@ const resizerDimensionsReducer = (state = {}, action) => {
     }
 }
 
+const userCredentialsReducer = (state = {}, action) => {
+    switch (action.type) {
+        case LOGIN: return {
+            user: action.user,
+            pass: action.pass
+        }
+        default: return state;
+    }
+}
+
 const rootReducer = combineReducers({
     history: historyReducer,
     formatSelect: formatReducer,
     resizerDimensions: resizerDimensionsReducer,
+    userCredentials: userCredentialsReducer
 });
 
 const mapStateToProps = (state) => {
@@ -86,7 +97,9 @@ const mapStateToProps = (state) => {
         sentData: state.history.sentData,
         selectedEntries: [],// todo
         tableHeight: state.resizerDimensions.tableHeight,
-        tableWidth: state.resizerDimensions.tableWidth
+        tableWidth: state.resizerDimensions.tableWidth,
+        user: state.userCredentials.user,
+        pass: state.userCredentials.pass
     }
 };
 
@@ -95,10 +108,10 @@ const mapDispatchToProps = (dispatch) => {
         newHistoryState: (prevRecordedData, dataAfterChange, collectedData) => {
             dispatch(newHistoryState(prevRecordedData, dataAfterChange, collectedData));
         },
-        undo: (collectedData)=>{
+        undo: (collectedData) => {
             dispatch(undo(collectedData));
         },
-        redo: (collectedData)=>{
+        redo: (collectedData) => {
             dispatch(redo(collectedData));
         },
         updateSelected: (entries) => {
@@ -107,8 +120,11 @@ const mapDispatchToProps = (dispatch) => {
         updateSheetDimensions: (height, width) => {
             dispatch(updateSheetDimensions(height, width));
         },
-        save: ()=>{
+        save: () => {
             dispatch(saveSheet());
+        },
+        login: (user, pass) => {
+            dispatch(login(user, pass));
         }
     }
 };
@@ -123,14 +139,14 @@ const newHistoryState = (prevRecordedData, dataAfterChange, collectedData) => {
     }
 }
 
-const undo = (collectedData)=>{
+const undo = (collectedData) => {
     return {
         type: UNDO,
         collectedData: collectedData
     }
 }
 
-const redo = (collectedData)=>{
+const redo = (collectedData) => {
     return {
         type: REDO,
         collectedData: collectedData
@@ -152,10 +168,20 @@ const updateSheetDimensions = (height, width) => {
     }
 };
 
-const saveSheet = ()=>{
+const saveSheet = () => {
     return {
         type: SAVE
     }
 }
 
-export { rootReducer, mapStateToProps, mapDispatchToProps, updateSheetDimensions };
+const login = (user, pass) => {
+    return {
+        type: LOGIN,
+        user: user,
+        pass: pass
+    }
+}
+
+const store = createStore(rootReducer);
+
+export { store, mapStateToProps, mapDispatchToProps, updateSheetDimensions, login};

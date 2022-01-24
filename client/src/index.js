@@ -14,7 +14,7 @@ function App() {
         <Route path='/' element={<UserAuth />} />
         <Route path='/signUp' element={<SignUp/>}/>
         <Route path="/sheets" element={<SheetManager />} />
-        <Route path="/editor" element={<Sheet />} />
+        <Route path="/editor" element={<Sheet autoSaveToggle={false}/>} />
         <Route path="/*" element={<NoPage />} />
       </Routes>
     </BrowserRouter>

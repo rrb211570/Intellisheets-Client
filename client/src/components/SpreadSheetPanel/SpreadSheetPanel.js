@@ -18,7 +18,6 @@ class SpreadSheetPanel extends React.Component {
             table: defaultSheet(parseInt(this.props.rows), parseInt(this.props.cols), parseInt(this.props.defaultRowHeight), parseInt(this.props.defaultColWidth)),
             keyEventState: NOCOMMAND,
             sheetID: '',
-            user: ''
         }
         this.getSheetDimensions = this.getSheetDimensions.bind(this);
         this.setSheetDimensions = this.setSheetDimensions.bind(this);
@@ -107,9 +106,9 @@ class SpreadSheetPanel extends React.Component {
         if (this.props.visibleSheet) {
             timer = setInterval(() => {
                 console.log('autoSave()');
-                console.log(this.props.collectedData);
-                console.log(this.props.sentData);
                 if (this.props.collectedData !== null && [...this.props.collectedData.getEntries()].length != 0) {
+                    console.log(this.props.collectedData);
+                    console.log(this.props.sentData);
                     this.saveAPI()
                         .then(res => console.log('saveStatus: ' + res.saveStatus))
                         .catch(err => {
@@ -126,7 +125,7 @@ class SpreadSheetPanel extends React.Component {
         }
     }
     saveAPI = async () => {
-        const response = await fetch('/api/users/' + this.state.user + '/' + this.state.sheetID, {
+        const response = await fetch('/sheet/save/' + this.props.user + '/' + this.props.passWord+'/'+this.state.sheetID, {
             method: "POST",
             body: JSON.stringify({
                 token: this.state.sessionToken,

@@ -1,39 +1,39 @@
 import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { Provider, connect } from 'react-redux';
+import { store, mapStateToProps, mapDispatchToProps} from '../store.js';
 
-class SheetPreview{
+class SheetPreview {
     #title;
     #id;
-    constructor(title, id){
+    constructor(title, id) {
         this.#title = title;
         this.#id = id;
     }
-    getTitle(){
+    getTitle() {
         return this.#title;
     }
-    getID(){
+    getID() {
         return this.#id;
     }
 }
 
-class Manager extends React.Component {
+class ManagerPanel extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            user: 'bamfry',
-            pass: '',
             sheetPreviews: []
         }
     }
     componentDidMount() {
-        this.callSheetLoaderAPI(this.state.user)
-            .then(res => console.log(res.username + ' ' + res._id + ' ' + res.sheets))
+        console.log('user: '+this.props.user+' pass: '+this.props.pass);
+        this.callSheetLoaderAPI(this.props.user, this.props.pass)
+            .then(res => console.log('user: '+res.username+' id: '+res._id+' res.sheets: '+res.sheets.length))
             .catch(err => console.log(err));
     }
-    callSheetLoaderAPI = async (user) => {
-        console.log(user);
-        const response = await fetch('/api/userSheets/?user='+user);
+    callSheetLoaderAPI = async (user, pass) => {
+        const response = await fetch('https://safe-dawn-48616.herokuapp.com/sheets/' + user + '/' + pass);
         const body = await response.json();
 
         if (response.status !== 200) {
@@ -48,20 +48,25 @@ class Manager extends React.Component {
                 <Link to='/'>Log out</Link>
                 <Link to='/editor'>New sheet</Link>
                 <div style={{ display: 'flex', flexDirection: 'row' }}>
-                    {this.state.sheetPreviews.map(sheet=><button id={sheet.getID()} onClick={this.openSheet}>{sheet.getTitle()}</button>)}
+                    {this.state.sheetPreviews.map(sheet => <button id={sheet.getID()} onClick={this.openSheet}>{sheet.getTitle()}</button>)}
                 </div>
                 <Outlet />
             </div>
         );
     }
-    openSheet(){
-        this.props.nav(`/editor?user=${this.state.user}&pass=${this.state.pass}`);
+    openSheet() {
+        this.props.nav(`/editor`);
     }
 }
 
-function SheetManager(){
+const ManagerContainer = connect(mapStateToProps, mapDispatchToProps)(ManagerPanel);
+function SheetManager() {
     let nav = useNavigate();
-    return <Manager nav={nav}></Manager>
+    return (
+        <Provider store={store}>
+            <ManagerContainer nav={nav}></ManagerContainer>
+        </Provider>
+    );
 }
 
 export default SheetManager;
