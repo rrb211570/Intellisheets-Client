@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import rootURL from '../serverURL.js';
 
 class EntryPanel extends React.Component {
     constructor(props) {
@@ -50,7 +51,7 @@ class EntryPanel extends React.Component {
             });
     }
     createUserIfAvailable = async (user, pass) => {
-        const response = await fetch('/newuser/'+user+'/'+pass);
+        const response = await fetch(rootURL+'newuser/'+user+'/'+pass);
         const body = await response.json();
         if (response.status !== 200) {
             throw Error(body.error)

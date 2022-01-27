@@ -6,6 +6,7 @@ import applySelectedHandler from './handlers/selectedHandler.js';
 import { recordChange } from './core/history/newInteraction/recordChange.js';
 import { undo, redo } from './core/history/traverseHistory/undoRedo.js'
 import { unitTest } from './tests/endToEnd.js';
+import rootURL from '../../serverURL.js';
 
 const NOCOMMAND = 0;
 const CONTROL = 1;
@@ -15,7 +16,7 @@ class SpreadSheetPanel extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            table: defaultSheet(parseInt(this.props.rows), parseInt(this.props.cols), parseInt(this.props.defaultRowHeight), parseInt(this.props.defaultColWidth)),
+            table: defaultSheet(parseInt(this.props.rows), parseInt(this.props.cols), parseInt(this.props.rowHeight), parseInt(this.props.colWidth)),
             keyEventState: NOCOMMAND,
             sheetID: '',
         }
@@ -109,16 +110,17 @@ class SpreadSheetPanel extends React.Component {
                 if ([...this.props.collectedData.getEntries()].length != 0) {
                     console.log(this.props.collectedData);
                     console.log(this.props.sentData);
-                    console.log('creds: '+this.props.user + ' '+this.props.pass);
                     this.saveAPI()
-                        .then(res => console.log('saveStatus: ' + res.saveStatus))
+                        .then(res => {
+                            console.log('saveStatus: ' + res.status);
+                            console.log(res.dat);
+                            this.props.save();
+                            console.log(this.props.sentData);
+                        })
                         .catch(err => {
                             console.log('saveError: ' + err);
                             clearInterval(timer);
                         });
-                    this.props.save();
-                    console.log('saved');
-                    console.log(this.props.sentData);
                 }
             }, 5000);
         } else {
@@ -126,20 +128,39 @@ class SpreadSheetPanel extends React.Component {
         }
     }
     saveAPI = async () => {
-        const response = await fetch('/sheet/save/' + this.props.user + '/' + this.props.pass+'/'+this.state.sheetID, {
-            method: "POST",
+        let exposedCollectedData = this.exposeCollectedData(this.props.collectedData);
+        const response = await fetch(rootURL+'saveSheet/' + this.props.user + '/' + this.props.pass + '/' + '123', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
-                token: this.state.sessionToken,
-                collectedData: this.props.collectedData
-            }),
-            headers: { "Content-Type": "application/json; charset=UTF-8" }
+                exposedCollectedData: exposedCollectedData
+            })
         });
-        const body = await response.json();
-
+        const body = response.json();
         if (response.status !== 200) {
             throw Error(body.message)
         }
         return body;
     };
+    exposeCollectedData(data) {
+        let myArr = [];
+        for (const [entryKey, value] of data.getEntries()) {
+            let entryObj = {entryKey:entryKey};
+            if (entryKey != 'spreadsheet' && !/.col./.test(entryKey)) entryObj.row=  value.getRow();
+            else if (/.col./.test(entryKey)) {
+                entryObj.row=value.getCellRow();
+                entryObj.col = value.getCellCol();
+                entryObj.val = value.getVal();
+            }
+            entryObj.styleMap = [...value.getStyleMap().entries().map(styleEntry=> {
+                return {property: styleEntry[0], value: styleEntry[1]}
+            })];
+            myArr.push(entryObj);
+        }
+        return myArr;
+    }
 }
 export default SpreadSheetPanel;

@@ -3,21 +3,12 @@ import { Outlet, Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { Provider, connect } from 'react-redux';
 import { store, mapStateToProps, mapDispatchToProps} from '../store.js';
+import rootURL from '../serverURL.js';
 
-class SheetPreview {
-    #title;
-    #id;
-    constructor(title, id) {
-        this.#title = title;
-        this.#id = id;
-    }
-    getTitle() {
-        return this.#title;
-    }
-    getID() {
-        return this.#id;
-    }
-}
+const DEFAULTROWS = 100;
+const DEFAULTCOLS = 26;
+const DEFAULTROWHEIGHT = '20';
+const DEFAULTCOLWIDTH = '100';
 
 class ManagerPanel extends React.Component {
     constructor(props) {
@@ -26,14 +17,47 @@ class ManagerPanel extends React.Component {
             sheetPreviews: []
         }
     }
+    render() {
+        return (
+            <div>
+                <div>SheetManager</div>
+                <Link to='/'>Log out</Link>
+                <button button id='newSheet' onClick={this.newSheet}>{sheetPreview.title}</button>
+                <Link to='/editor'>New sheet</Link>
+                <div style={{ display: 'flex', flexDirection: 'row' }}>
+                    {this.state.sheetPreviews.map(sheetPreview => <button id={sheetPreview.id} onClick={this.openSheet}>{sheetPreview.title}</button>)}
+                </div>
+                <Outlet />
+            </div>
+        );
+    }
     componentDidMount() {
         console.log('user: '+this.props.user+' pass: '+this.props.pass);
         this.callSheetLoaderAPI(this.props.user, this.props.pass)
-            .then(res => console.log('user: '+res.username+' id: '+res._id+' res.sheets: '+res.sheets.length))
+            .then(res => {
+                console.log('user: '+res.username+' id: '+res._id+' res.sheetPreviews: '+res.sheetPreviews.length);
+                this.setState({sheetPreviews: res.sheetPreviews});
+            })
             .catch(err => console.log(err));
     }
-    callSheetLoaderAPI = async (user, pass) => {
-        const response = await fetch('https://safe-dawn-48616.herokuapp.com/sheets/' + user + '/' + pass);
+    newSheet() {
+        this.callNewSheetAPI(this.props.user, this.props.pass)
+            .then(res => {
+                this.setState({sheetPreviews: res.sheetPreviews});
+                this.props.nav(`/editor/`+res.newSheetID);
+            })
+            .catch(err => console.log(err));
+    }
+    openSheet() {
+        this.callOpenSheetAPI(this.props.user, this.props.pass)
+            .then(res => {
+                this.setState({sheetPreviews: res.sheetPreviews});
+                this.props.nav(`/editor/`+res.newSheetID);
+            })
+            .catch(err => console.log(err));
+    }
+    callNewSheetAPI = async (user, pass) => {
+        const response = await fetch(rootURL+'createSheet/' + user + '/' + pass);
         const body = await response.json();
 
         if (response.status !== 200) {
@@ -41,21 +65,23 @@ class ManagerPanel extends React.Component {
         }
         return body;
     }
-    render() {
-        return (
-            <div>
-                <div>SheetManager</div>
-                <Link to='/'>Log out</Link>
-                <Link to='/editor'>New sheet</Link>
-                <div style={{ display: 'flex', flexDirection: 'row' }}>
-                    {this.state.sheetPreviews.map(sheet => <button id={sheet.getID()} onClick={this.openSheet}>{sheet.getTitle()}</button>)}
-                </div>
-                <Outlet />
-            </div>
-        );
+    callOpenSheetAPI= async (user, pass) => {
+        const response = await fetch(rootURL+'loadSheet/' + user + '/' + pass);
+        const body = await response.json();
+
+        if (response.status !== 200) {
+            throw Error(body.message)
+        }
+        return body;
     }
-    openSheet() {
-        this.props.nav(`/editor`);
+    callSheetLoaderAPI = async (user, pass) => {
+        const response = await fetch(rootURL+'sheets/' + user + '/' + pass);
+        const body = await response.json();
+
+        if (response.status !== 200) {
+            throw Error(body.message)
+        }
+        return body;
     }
 }
 
@@ -69,4 +95,4 @@ function SheetManager() {
     );
 }
 
-export default SheetManager;
+export {SheetManager, DEFAULTROWS, DEFAULTCOLS, DEFAULTROWHEIGHT, DEFAULTCOLWIDTH};

@@ -4,19 +4,16 @@ import '../index.css';
 import { SpreadSheetPanel } from '../components'
 import { store, mapStateToProps, mapDispatchToProps, updateSheetDimensions } from '../store.js'
 import { useNavigate } from 'react-router-dom';
+import {DEFAULTROWS, DEFAULTCOLS, DEFAULTROWHEIGHT, DEFAULTCOLWIDTH} from './SheetManager.js'
 // test flags
 const ALL = -1;
 const RESIZING = 0;
 const TEXTCHANGE = 1;
 
 // table arguments & store initialization
-const ROWS = 100;
-const COLS = 26;
-const DEFAULTROWHEIGHT = '20';
-const DEFAULTCOLWIDTH = '100';
 
 const SpreadSheetContainer = connect(mapStateToProps, mapDispatchToProps)(SpreadSheetPanel);
-store.dispatch(updateSheetDimensions((parseInt(ROWS, 10) + 1) * DEFAULTROWHEIGHT, (COLS * DEFAULTCOLWIDTH) + (DEFAULTCOLWIDTH / 2)));
+store.dispatch(updateSheetDimensions((parseInt(DEFAULTROWS, 10) + 1) * DEFAULTROWHEIGHT, (DEFAULTCOLS * DEFAULTCOLWIDTH) + (DEFAULTCOLWIDTH / 2)));
 
 let autoSaveToggle = true;
 class SheetPage extends React.Component {
@@ -33,7 +30,7 @@ class SheetPage extends React.Component {
                 <button onClick={this.NavtoSheetManager}>{'<- Back'}</button>
                 <div id="pageID" className="page">
                     <Provider store={store}>
-                        <SpreadSheetContainer rows={ROWS} cols={COLS} defaultRowHeight={DEFAULTROWHEIGHT} defaultColWidth={DEFAULTCOLWIDTH} whichTests={[]} visibleSheet />
+                        <SpreadSheetContainer rows={DEFAULTROWS} cols={DEFAULTCOLS} rowHeight={DEFAULTROWHEIGHT} colWidth={DEFAULTCOLWIDTH} whichTests={[]} visibleSheet />
                     </Provider>
                 </div>
             </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Provider, connect, useSelector } from 'react-redux';
 import { store, mapStateToProps, mapDispatchToProps, login} from '../store.js'
+import rootURL from '../serverURL.js';
 
 class UserAuthPanel extends React.Component {
     constructor(props) {
@@ -29,7 +30,7 @@ class UserAuthPanel extends React.Component {
             });
     }
     tryLogIn = async (user, pass) => {
-        const response = await fetch('https://safe-dawn-48616.herokuapp.com/login/' + user + '/' + pass);
+        const response = await fetch(rootURL+'login/' + user + '/' + pass);
         const body = await response.json();
         if (response.status !== 200) {
             throw Error(body.error)

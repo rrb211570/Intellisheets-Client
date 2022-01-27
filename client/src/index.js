@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import UserAuth from './pages/UserAuth.js'
 import SignUp from './pages/SignUp.js'
-import SheetManager from './pages/SheetManager.js'
+import {SheetManager} from './pages/SheetManager.js'
 import Sheet from './pages/Sheet.js'
 import NoPage from './pages/NoPage.js'
 
