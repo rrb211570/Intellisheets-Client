@@ -13,6 +13,22 @@ class UserAuthPanel extends React.Component {
         this.signUpHandler = this.signUpHandler.bind(this);
         this.logInHandler = this.logInHandler.bind(this);
     }
+    render() {
+        return (
+            <div style={{ width: '100%', height: '100%' }}>
+                <div style={{ margin: '2% 10% 2% 55%', width: '20%', height: '100%', border: '2px solid black' }}>
+                    <div style={{ margin: '10%', display: 'flex', flexDirection: 'column' }}>
+                        <input type='text' name='user' placeholder='Username' style={{ margin: '10% 10% 0% 10%' }} onChange={this.clearErrorHandler}></input>
+                        <input type='password' name='pass' placeholder='Password' style={{ margin: '10% 10% 0% 10%' }} onChange={this.clearErrorHandler}></input>
+                        <p id='credentialsCheck' style={{ visibility: 'hidden' }}>* Invalid username or password *</p>
+                        <button style={{ margin: '10% 10% 0% 10%' }} onClick={this.logInHandler}>Log In</button>
+                        <p style={{ textAlign: 'center', margin: '0% 0% 4% 0%' }}>__________________________________________</p>
+                        <button style={{ margin: '0% 10% 10% 10%' }} onClick={this.signUpHandler}>Sign Up</button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
     logInHandler() {
         let user = document.getElementsByName('user')[0].value;
         let pass = document.getElementsByName('pass')[0].value;
@@ -42,22 +58,6 @@ class UserAuthPanel extends React.Component {
     }
     clearErrorHandler() {
         document.querySelector('#credentialsCheck').style.visibility = 'hidden';
-    }
-    render() {
-        return (
-            <div style={{ width: '100%', height: '100%' }}>
-                <div style={{ margin: '2% 10% 2% 55%', width: '20%', height: '100%', border: '2px solid black' }}>
-                    <div style={{ margin: '10%', display: 'flex', flexDirection: 'column' }}>
-                        <input type='text' name='user' placeholder='Username' style={{ margin: '10% 10% 0% 10%' }} onChange={this.clearErrorHandler}></input>
-                        <input type='password' name='pass' placeholder='Password' style={{ margin: '10% 10% 0% 10%' }} onChange={this.clearErrorHandler}></input>
-                        <p id='credentialsCheck' style={{ visibility: 'hidden' }}>* Invalid username or password *</p>
-                        <button style={{ margin: '10% 10% 0% 10%' }} onClick={this.logInHandler}>Log In</button>
-                        <p style={{ textAlign: 'center', margin: '0% 0% 4% 0%' }}>__________________________________________</p>
-                        <button style={{ margin: '0% 10% 10% 10%' }} onClick={this.signUpHandler}>Sign Up</button>
-                    </div>
-                </div>
-            </div>
-        );
     }
 }
 

@@ -51,6 +51,7 @@ class ManagerPanel extends React.Component {
         console.log('newSheet() somehow failed');
     }
     openSheet(e) {
+        console.log('id: '+e.target.id);
         this.callOpenSheetAPI(this.props.user, this.props.pass, e.target.id)
             .then(res => {
                 if (res.status == 'OPEN_SHEET') this.props.nav(`/editor/` + res.newSheetID);
