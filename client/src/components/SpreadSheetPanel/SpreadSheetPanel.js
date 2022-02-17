@@ -26,7 +26,6 @@ class SpreadSheetPanel extends React.Component {
         this.setSelected = this.setSelected.bind(this);
         this.keyPressed = this.keyPressed.bind(this);
         this.keyUpped = this.keyUpped.bind(this);
-        this.autoSave = this.autoSave.bind(this);
 
         // imported
         this.recordChange = recordChange.bind(this);
@@ -39,7 +38,6 @@ class SpreadSheetPanel extends React.Component {
         applyTextChangeHandlers(this.recordChange);
         applySelectedHandler(this.state.keyEventState, this.state.getSelected, this.state.setSelected);
         if (this.props.whichTests.length != 0) unitTest(this.props.whichTests, this.getSheetDimensions, this.getChangeHistoryAndIndex);
-        this.autoSave();
     }
     render() {
         return (
@@ -101,66 +99,6 @@ class SpreadSheetPanel extends React.Component {
                 }
                 break;
         }
-    }
-    autoSave() {
-        let timer;
-        if (this.props.visibleSheet) {
-            timer = setInterval(() => {
-                console.log('autoSave()');
-                if ([...this.props.collectedData.getEntries()].length != 0) {
-                    console.log(this.props.collectedData);
-                    console.log(this.props.sentData);
-                    this.saveAPI()
-                        .then(res => {
-                            console.log('saveStatus: ' + res.status);
-                            console.log(res.dat);
-                            this.props.save();
-                            console.log(this.props.sentData);
-                        })
-                        .catch(err => {
-                            console.log('saveError: ' + err);
-                            clearInterval(timer);
-                        });
-                }
-            }, 5000);
-        } else {
-            clearInterval(timer);
-        }
-    }
-    saveAPI = async () => {
-        let exposedCollectedData = this.exposeCollectedData(this.props.collectedData);
-        const response = await fetch(rootURL+'saveSheet/' + this.props.user + '/' + this.props.pass + '/' + '123', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                exposedCollectedData: exposedCollectedData
-            })
-        });
-        const body = response.json();
-        if (response.status !== 200) {
-            throw Error(body.message)
-        }
-        return body;
-    };
-    exposeCollectedData(data) {
-        let myArr = [];
-        for (const [entryKey, value] of data.getEntries()) {
-            let entryObj = {entryKey:entryKey};
-            if (entryKey != 'spreadsheet' && !/.col./.test(entryKey)) entryObj.row=  value.getRow();
-            else if (/.col./.test(entryKey)) {
-                entryObj.row=value.getCellRow();
-                entryObj.col = value.getCellCol();
-                entryObj.val = value.getVal();
-            }
-            entryObj.styleMap = [...value.getStyleMap().entries().map(styleEntry=> {
-                return {property: styleEntry[0], value: styleEntry[1]}
-            })];
-            myArr.push(entryObj);
-        }
-        return myArr;
     }
 }
 export default SpreadSheetPanel;

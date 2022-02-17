@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Provider, connect, useSelector } from 'react-redux';
-import { store, mapStateToProps, mapDispatchToProps, login} from '../store.js'
+import { store, mapStateToProps, mapDispatchToProps} from '../store.js'
 import rootURL from '../serverURL.js';
 
 class UserAuthPanel extends React.Component {
@@ -35,10 +35,7 @@ class UserAuthPanel extends React.Component {
 
         this.tryLogIn(user, pass)
             .then(res => {
-                if (res.validCredentials) {
-                    store.dispatch(login(user, pass));
-                    this.props.nav(`/sheets`);
-                }
+                if (res.validCredentials) this.props.nav(`/sheets`);
                 else document.querySelector('#credentialsCheck').style.visibility = 'visible';
             })
             .catch(err => {
@@ -48,9 +45,7 @@ class UserAuthPanel extends React.Component {
     tryLogIn = async (user, pass) => {
         const response = await fetch(rootURL+'login/' + user + '/' + pass);
         const body = await response.json();
-        if (response.status !== 200) {
-            throw Error(body.error)
-        }
+        if (response.status !== 200) throw Error(body.error);
         return body;
     };
     signUpHandler() {

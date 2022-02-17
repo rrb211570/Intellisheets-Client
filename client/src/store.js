@@ -7,7 +7,6 @@ const UPDATESELECTED = 'UPDATESELECTED';
 const UPDATESHEETDIMENSIONS = 'UPDATESHEETDIMENSIONS';
 const SAVE = 'SAVE';
 const ROLLBACKANDMERGE = 'ROLLBACKANDMERGE';
-const LOGIN = 'LOGIN';
 
 const historyReducer = (state = {
     changeHistory: [new Data()],
@@ -72,21 +71,10 @@ const resizerDimensionsReducer = (state = {}, action) => {
     }
 }
 
-const userCredentialsReducer = (state = {}, action) => {
-    switch (action.type) {
-        case LOGIN: return {
-            user: action.user,
-            pass: action.pass
-        }
-        default: return state;
-    }
-}
-
 const rootReducer = combineReducers({
     history: historyReducer,
     formatSelect: formatReducer,
     resizerDimensions: resizerDimensionsReducer,
-    userCredentials: userCredentialsReducer
 });
 
 const mapStateToProps = (state) => {
@@ -98,8 +86,6 @@ const mapStateToProps = (state) => {
         selectedEntries: [],// todo
         tableHeight: state.resizerDimensions.tableHeight,
         tableWidth: state.resizerDimensions.tableWidth,
-        user: state.userCredentials.user,
-        pass: state.userCredentials.pass
     }
 };
 
@@ -123,9 +109,6 @@ const mapDispatchToProps = (dispatch) => {
         save: () => {
             dispatch(saveSheet());
         },
-        login: (user, pass) => {
-            dispatch(login(user, pass));
-        }
     }
 };
 
@@ -174,14 +157,6 @@ const saveSheet = () => {
     }
 }
 
-const login = (user, pass) => {
-    return {
-        type: LOGIN,
-        user: user,
-        pass: pass
-    }
-}
-
 const store = createStore(rootReducer);
 
-export { store, mapStateToProps, mapDispatchToProps, updateSheetDimensions, login};
+export { store, mapStateToProps, mapDispatchToProps, updateSheetDimensions};
