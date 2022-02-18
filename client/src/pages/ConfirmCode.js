@@ -29,17 +29,7 @@ class ConfirmCodePanel extends React.Component {
         this.confirmCodeAPI(user, code)
             .then(res => {
                 console.log(res);
-                if (res.status == 'success') {
-                    console.log('success')
-                    this.testCookieAPI()
-                        .then(res => {
-                            console.log(res);
-                        })
-                        .catch(e => {
-                            console.log('err' + e);
-                        })
-                    //this.props.nav(`/sheets`);
-                }
+                if (res.status == 'success') this.props.nav(`/sheets`);
                 else if (res.status == 'fail') {
                     if (res.reason != 'invalid code') document.querySelector('#confirmContext').value = 'Server error. Try again later.';
                     else document.querySelector('#confirmContext').value = '*Please enter valid code sent to your email*';
@@ -52,14 +42,6 @@ class ConfirmCodePanel extends React.Component {
     }
     confirmCodeAPI = async (user, code) => {
         const response = await fetch(rootURL + 'confirmCode/' + user + '/' + code, { credentials: 'include' });
-        const body = await response.json();
-        if (response.status !== 200) {
-            throw Error(body.error)
-        }
-        return body;
-    }
-    testCookieAPI = async () => {
-        const response = await fetch(rootURL + 'testCookie', { credentials: 'include' });
         const body = await response.json();
         if (response.status !== 200) {
             throw Error(body.error)
