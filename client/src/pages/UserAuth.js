@@ -32,7 +32,6 @@ class UserAuthPanel extends React.Component {
     logInHandler() {
         let user = document.getElementsByName('user')[0].value;
         let pass = document.getElementsByName('pass')[0].value;
-
         this.tryLogIn(user, pass)
             .then(res => {
                 if (res.validCredentials) this.props.nav(`/sheets`);

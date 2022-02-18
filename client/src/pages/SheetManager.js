@@ -35,7 +35,7 @@ class ManagerPanel extends React.Component {
     }
     componentDidMount() {
         console.log('loading sheets');
-        this.loadSheetsAPI()
+        /*this.loadSheetsAPI()
             .then(res => {
                 console.log(res);
                 if (res.status == 'fail') this.props.nav('/');
@@ -44,10 +44,10 @@ class ManagerPanel extends React.Component {
                     this.setState({ sheetPreviews: '' });
                 }
             })
-            .catch(err => console.log('blah'+err));
+            .catch(err => console.log('blah' + err));*/
     }
     loadSheetsAPI = async () => {
-        const response = await fetch(rootURL + 'sheets');
+        const response = await fetch(rootURL + 'sheets', { credentials: 'include' });
         const body = await response.json();
 
         if (response.status !== 200) {
