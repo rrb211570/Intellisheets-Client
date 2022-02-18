@@ -41,7 +41,7 @@ class ManagerPanel extends React.Component {
                 if (res.status == 'fail') this.props.nav('/');
                 else {
                     console.log(res);
-                    this.setState({ sheetPreviews: '' });
+                    this.setState({ sheetPreviews: [{ id: 'fun', title: 'great' }] });
                 }
             })
             .catch(err => console.log('blah' + err));
