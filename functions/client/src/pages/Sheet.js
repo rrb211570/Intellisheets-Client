@@ -31,6 +31,10 @@ class SheetPanel extends React.Component {
             <div>
                 <div className='editorNavBar'>
                     <button id='back' className='navButton' onClick={this.NavtoSheetManager}>{'<- Back'}</button>
+                    <p style={{
+                        color: 'white', display: 'flex',
+                        alignItems: 'center'
+                    }}>Note: Auto-save triggers every ~3 seconds. Undo/redo: CTRL+Z and CTRL+Y (Meta for Mac users). Bug: undo/redo doesn't get properly saved at the moment.</p>
                     <button id='logout' className='navButton' onClick={this.logout}>Log out</button>
                 </div>
                 <div id="pageID" className="page">
@@ -38,7 +42,7 @@ class SheetPanel extends React.Component {
                         <SpreadSheetContainer rows={DEFAULTROWS} cols={DEFAULTCOLS} rowHeight={DEFAULTROWHEIGHT} colWidth={DEFAULTCOLWIDTH} loadedSheet={this.state.loadedSheet} whichTests={[]} />
                     </Provider>
                 </div>
-            </div>
+            </div >
         );
     }
     componentDidMount() {
