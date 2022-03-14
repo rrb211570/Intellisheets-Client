@@ -132,7 +132,7 @@ function getResizableRowData(index, height, sheetHeight) {
     let myData = new Data();
     let groupStyleMap = new Map();
     groupStyleMap.set('height', height)
-    myData.setGroup(`.col${index}`, groupStyleMap);
+    myData.setGroup(`.row${index}`, groupStyleMap);
     let individualStyleMap = new Map();
     individualStyleMap.set('height', sheetHeight);
     myData.setIndividualEntry(`spreadsheet`, individualStyleMap);
@@ -161,11 +161,11 @@ function updateHeights(rowIndex, height, dy) {
 function updateWidths(colIndex, width, dx) {
     let arr = [...document.querySelectorAll(`.col${colIndex}`)];
     arr.forEach((cell, index) => {
+        cell.style.width = width + dx + 'px';
         if (index > 0) {
             cell.querySelector('input').style.width = width + dx - 4 + 'px';
             cell.querySelector('#cover').style.width = width + dx + 'px';
         }
-        cell.style.width = width + dx + 'px';
     });
 }
 

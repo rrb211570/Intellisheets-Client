@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import rootURL from '../serverURL.js';
 
 class AboutPanel extends React.Component {
     constructor(props) {
@@ -34,6 +35,24 @@ class AboutPanel extends React.Component {
                 </div >
             </div >
         );
+    }
+    componentDidMount() {
+        this.wakeServerAPI()
+            .then(res => {
+                if (res.status == 'success') console.log('server is awake');
+            })
+            .catch((e) => {
+                console.log('wakeServer error: ' + e);
+            })
+    }
+    wakeServerAPI = async () => {
+        const response = await fetch(rootURL + 'wakeServer/');
+        const body = await response.json();
+
+        if (response.status !== 200) {
+            throw Error(body.message)
+        }
+        return body;
     }
     homePageHandler() {
         this.props.nav('/');

@@ -1,12 +1,11 @@
 import React from 'react';
-import { loadSheet, defaultSheet } from './core/serverCalls/loadTable/getSheet.js'
+import { loadSheet } from './core/serverCalls/loadTable/loadSheet.js'
 import { applyResizers } from './handlers/resizingHandler/resizingHandler.js'
 import applyTextChangeHandlers from './handlers/textChangeHandler.js';
 import applySelectedHandler from './handlers/selectedHandler.js';
 import { recordChange } from './core/history/newInteraction/recordChange.js';
 import { undo, redo } from './core/history/traverseHistory/undoRedo.js'
 import { unitTest } from './tests/endToEnd.js';
-import rootURL from '../../serverURL.js';
 
 const NOCOMMAND = 0;
 const CONTROL = 1;
@@ -16,7 +15,7 @@ class SpreadSheetPanel extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            table: loadSheet(this.props.loadedSheet, parseInt(this.props.rows), parseInt(this.props.cols), parseInt(this.props.rowHeight), parseInt(this.props.colWidth)),
+            table: <div></div>,
             keyEventState: NOCOMMAND,
             sheetID: '',
         }
@@ -44,10 +43,29 @@ class SpreadSheetPanel extends React.Component {
     }
     componentDidMount() {
         console.log(this.props);
-        applyResizers([this.getSheetDimensions, this.setSheetDimensions, this.recordChange]); // resizers.js
-        applyTextChangeHandlers(this.recordChange);
-        applySelectedHandler(this.state.keyEventState, this.state.getSelected, this.state.setSelected);
-        if (this.props.whichTests.length != 0) unitTest(this.props.whichTests, this.getSheetDimensions, this.getChangeHistoryAndIndex);
+        let flag = 0;
+        let timer = setInterval(() => {
+            if (flag == 0) {
+                if (this.props.loadedSheet != null) {
+                    try{
+                        this.setState({
+                            table: loadSheet(this.props.loadedSheet, parseInt(this.props.rows), parseInt(this.props.cols), parseInt(this.props.rowHeight), parseInt(this.props.colWidth))
+                        });
+                        console.log('loading complete');
+                    } catch(e){
+                        console.log(e);
+                        clearInterval(timer);
+                    }
+                    flag = 1;
+                }
+            } else if (flag == 1) {
+                applyResizers([this.getSheetDimensions, this.setSheetDimensions, this.recordChange]); // resizers.js
+                applyTextChangeHandlers(this.recordChange);
+                applySelectedHandler(this.state.keyEventState, this.state.getSelected, this.state.setSelected);
+                if (this.props.whichTests.length != 0) unitTest(this.props.whichTests, this.getSheetDimensions, this.getChangeHistoryAndIndex);
+                clearInterval(timer);
+            }
+        }, 1000)
     }
     getSheetDimensions() {
         return [this.props.tableHeight, this.props.tableWidth];

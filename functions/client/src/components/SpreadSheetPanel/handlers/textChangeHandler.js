@@ -1,9 +1,9 @@
 import Data from '../core/history/data.js';
 
-function applyTextChangeHandlers(recordChange) {
+function applyTextChangeHandlers(recordChange, getTable, alterTable) {
     let entryCells = [...document.querySelectorAll('.entryCell')];
     entryCells.forEach(entryCell => {
-        applyTextChangeHandler(entryCell, recordChange);
+        applyTextChangeHandler(entryCell, recordChange, getTable, alterTable);
     });
 }
 
@@ -12,8 +12,8 @@ function applyTextChangeHandler(entryCell, recordChange) {
     const input = entryCell.querySelector('input');
     const row = [...entryCell.classList].filter(name => /^row\d+$/.test(name))[0];
     const col = [...entryCell.classList].filter(name => /^col\d+$/.test(name))[0];
-    let rowNum = parseInt(row.match(/(\d+)/)[0],10);
-    let colNum = parseInt(col.match(/(\d+)/)[0],10);
+    let rowNum = parseInt(row.match(/(\d+)/)[0], 10);
+    let colNum = parseInt(col.match(/(\d+)/)[0], 10);
     let prevData = new Data();
     let newData = new Data();
     let uselessStyleMap = new Map();
@@ -26,6 +26,9 @@ function applyTextChangeHandler(entryCell, recordChange) {
 
     const onChangeHandler = function (e) {
         changeOccurred = true;
+        //table = getTable();
+        //table[rowNum].props.children[colNum].props.children[0].props.value = e.target.value;
+        //alterTable(table);
     }
 
     const onBlurHandler = function (e) {

@@ -50,4 +50,42 @@ function applyChange(entry, styleMap, val) {
     }
 }
 
-export { updateSheetDimensions, applyChange };
+function applyGroupChange(group, styleMap) {
+    if (/^\.col\d+$/.test(group)) {
+        console.log('applying groupChange to col: ' + group);
+        for (const [property, value] of styleMap) {
+            if (property == 'width') {
+                let entries = document.querySelectorAll(group);
+                let dx = value - parseInt(entries[0].style.width, 10);
+                for (let i = 0; i < entries.length; ++i) {
+                    entries[i].style.width = value + 'px';
+                }
+                let colNum = parseInt(group.match(/(\d+)/)[0], 10);
+                let elem = null;
+                while ((elem = document.querySelector(`.col${++colNum}`)) != null) {
+                    let entries = document.querySelectorAll(`.col${colNum}`);
+                    for (let i = 0; i < entries.length; ++i) {
+                        entries[i].style.marginLeft = parseInt(entries[i].style.marginLeft, 10) + dx + 'px';
+                    }
+                }
+            }
+        }
+    } else if (/^\.row\d+$/.test(group)) {
+        console.log('applying groupChange to row: ' + group);
+        for (const [property, value] of styleMap) {
+            if (property == 'height') {
+                let entries = document.querySelectorAll(group);
+                entries[0].style.height = value + 'px';
+                entries[1].style.height = value + 'px';
+                entries[1].style.lineHeight = value + 'px';
+                for (let i = 2; i < entries.length; ++i) {
+                    entries[i].style.height = value + 'px';
+                    entries[i].querySelector('input').style.height = value + 'px';
+                    entries[i].querySelector('#cover').style.height = value + 'px';
+                }
+            }
+        }
+    }
+}
+
+export { updateSheetDimensions, applyChange, applyGroupChange };

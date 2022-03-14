@@ -5,8 +5,8 @@ import { Provider, connect } from 'react-redux';
 import { store, mapStateToProps, mapDispatchToProps } from '../store.js';
 import rootURL from '../serverURL.js';
 
-const DEFAULTROWS = 8;
-const DEFAULTCOLS = 7;
+const DEFAULTROWS = 100;
+const DEFAULTCOLS = 26;
 const DEFAULTROWHEIGHT = '20';
 const DEFAULTCOLWIDTH = '100';
 
@@ -27,10 +27,10 @@ class ManagerPanel extends React.Component {
                 <div style={{ backgroundColor: '#F5F5F5', position: 'absolute', top: '0px', right: '0px', bottom: '0px', left: '0px', zIndex: '-1' }}>
                 </div>
                 <div className='managerNavBar'>
-                    <button className='navButton' id='logout' onClick={this.logout}>Log out</button>
+                    <button id='logout' className='navButton' onClick={this.logout}>Log out</button>
                 </div>
                 <div style={{ textAlign: 'center', marginTop: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <button onClick={this.newSheet} style={{ minWidth: '400px', width: '50%', marginBottom: '20px' }}>New Sheet</button>
+                    <button id='newSheet' onClick={this.newSheet} style={{ minWidth: '400px', width: '50%', marginBottom: '20px' }}>New Sheet</button>
                     <div style={{ minWidth: '400px', width: '50%', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid gray', padding: '0px 40px' }}>
                         <p style={{ textAlign: 'center', margin: '10px', color: 'gray' }}>Name</p>
                         <p style={{ margin: '10px', color: 'gray' }}>Date Modified</p>
@@ -64,12 +64,22 @@ class ManagerPanel extends React.Component {
         return body;
     }
     logout() {
+        document.querySelector('#logout').setAttribute('disabled', 'disabled');
+        document.querySelector('#newSheet').setAttribute('disabled', 'disabled');
         this.logoutAPI()
             .then(res => {
                 console.log(res);
                 if (res.status == 'success') this.props.nav('/');
+                else {
+                    document.querySelector('#logout').removeAttribute('disabled');
+                    document.querySelector('#newSheet').removeAttribute('disabled');
+                }
             })
-            .catch(err => console.log(err));
+            .catch(err => {
+                console.log(err);
+                document.querySelector('#logout').removeAttribute('disabled');
+                document.querySelector('#newSheet').removeAttribute('disabled');
+            });
     }
     logoutAPI = async () => {
         const response = await fetch(rootURL + 'logout', { credentials: 'include' });
@@ -81,13 +91,22 @@ class ManagerPanel extends React.Component {
         return body;
     }
     newSheet() {
+        document.querySelector('#logout').setAttribute('disabled', 'disabled');
+        document.querySelector('#newSheet').setAttribute('disabled', 'disabled');
         this.newSheetAPI()
             .then(res => {
                 console.log(res);
                 if (res.status == 'success') this.props.nav('/editor/' + res.newSheetID);
+                else {
+                    document.querySelector('#logout').removeAttribute('disabled');
+                    document.querySelector('#newSheet').removeAttribute('disabled');
+                }
             })
-            .catch(err => console.log(err));
-        console.log('newSheet() somehow failed');
+            .catch(err => {
+                console.log(err);
+                document.querySelector('#logout').removeAttribute('disabled');
+                document.querySelector('#newSheet').removeAttribute('disabled');
+            });
     }
     newSheetAPI = async () => {
         const response = await fetch(rootURL + 'createSheet/' + DEFAULTROWS + '/' + DEFAULTCOLS, { credentials: 'include' });

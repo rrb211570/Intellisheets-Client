@@ -2,7 +2,7 @@ import React from 'react';
 import { Provider, connect } from 'react-redux'
 import '../index.css';
 import { SpreadSheetPanel } from '../components'
-import { store, mapStateToProps, mapDispatchToProps, updateSheetDimensions } from '../store.js'
+import { store, mapStateToProps, mapDispatchToProps, updateSheetDimensions, clearHistoryState } from '../store.js'
 import { useNavigate } from 'react-router-dom';
 import { DEFAULTROWS, DEFAULTCOLS, DEFAULTROWHEIGHT, DEFAULTCOLWIDTH } from './SheetManager.js'
 import rootURL from '../serverURL.js';
@@ -29,12 +29,9 @@ class SheetPanel extends React.Component {
     render() {
         return (
             <div>
-                <div className="header" style={{ height: window.innerHeight * .05 }}>
-                    Lifestyle Trackers
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'row' }}>
-                    <button onClick={this.NavtoSheetManager}>{'<- Back'}</button>
-                    <button id='logout' onClick={this.logout}>Log out</button>
+                <div className='editorNavBar'>
+                    <button id='back' className='navButton' onClick={this.NavtoSheetManager}>{'<- Back'}</button>
+                    <button id='logout' className='navButton' onClick={this.logout}>Log out</button>
                 </div>
                 <div id="pageID" className="page">
                     <Provider store={store}>
@@ -46,37 +43,46 @@ class SheetPanel extends React.Component {
     }
     componentDidMount() {
         let id = window.location.href.match(/.+editor\/(.+)/)[1];
+        document.querySelector('#back').setAttribute('disabled', 'disabled');
+        document.querySelector('#logout').setAttribute('disabled', 'disabled');
         this.loadSheetAPI(id)
             .then(res => {
                 console.log(res);
                 if (res.status == 'success') {
+                    let timer = setInterval(() => {
+                        console.log('autoSave()');
+                        if ([...this.props.collectedData.getIndividualEntries()].length != 0 ||
+                            [...this.props.collectedData.getGroupEntries()].length != 0) {
+                            //console.log(this.props.collectedData);
+                            //console.log(this.props.sentData);
+
+                            this.saveAPI(this.state.sheetID)
+                                .then(res => {
+                                    if (res.status == 'success') {
+                                        console.log('save result');
+                                        console.log(res.dat);
+                                        this.props.save();
+                                        // console.log(this.props.sentData);
+                                    }
+                                    else console.log('autoSave failed');
+                                })
+                                .catch(err => {
+                                    console.log('saveError: ' + err);
+                                    clearInterval(timer);
+                                });
+                        }
+                    }, 3000)
                     this.setState({
-                        sheetID: id, 
+                        sheetID: id,
                         loadedSheet: res,
-                        autoSaveTimer: setInterval(() => {/*
-                            console.log('autoSave()');
-                            if ([...this.props.collectedData.getEntries()].length != 0) {
-                                console.log(this.props.collectedData);
-                                console.log(this.props.sentData);
-                                this.saveAPI(this.state.sheetID)
-                                    .then(res => {
-                                        if (res.status == 'success') {
-                                            console.log(res.dat);
-                                            this.props.save();
-                                            console.log(this.props.sentData);
-                                        }
-                                        else console.log('autoSave failed');
-                                    })
-                                    .catch(err => {
-                                        console.log('saveError: ' + err);
-                                    });
-                            }*/
-                        }, 5000)
+                        autoSaveTimer: timer,
                     })
+                    document.querySelector('#back').removeAttribute('disabled');
+                    document.querySelector('#logout').removeAttribute('disabled');
                 } else {
-                    if(res.status=='fail'){
-                        if(res.reason=='missing token') this.props.nav('/');
-                        if(res.reason=='sheetID does not exist') this.props.nav('/sheets')
+                    if (res.status == 'fail') {
+                        if (res.reason == 'missing token') this.props.nav('/');
+                        if (res.reason == 'sheetID does not exist') this.props.nav('/sheets')
                     }
 
                 }
@@ -88,18 +94,32 @@ class SheetPanel extends React.Component {
             });
     }
     NavtoSheetManager() {
+        document.querySelector('#back').setAttribute('disabled', 'disabled');
+        document.querySelector('#logout').setAttribute('disabled', 'disabled');
         clearInterval(this.state.autoSaveTimer);
+        store.dispatch(clearHistoryState());
         this.props.nav(`/sheets`);
     }
     logout() {
+        document.querySelector('#back').setAttribute('disabled', 'disabled');
+        document.querySelector('#logout').setAttribute('disabled', 'disabled');
         this.logoutAPI()
             .then(res => {
                 if (res.status == 'success') {
                     clearInterval(this.state.autoSaveTimer);
+                    store.dispatch(clearHistoryState());
                     this.props.nav('/');
+                } else {
+                    document.querySelector('#back').removeAttribute('disabled');
+                    document.querySelector('#logout').removeAttribute('disabled');
                 }
             })
-            .catch(err => console.log(err));
+            .catch(err => {
+                console.log(err);
+                document.querySelector('#back').removeAttribute('disabled');
+                document.querySelector('#logout').removeAttribute('disabled');
+
+            });
     }
     logoutAPI = async () => {
         const response = await fetch(rootURL + 'logout/', { credentials: 'include' });
@@ -121,6 +141,7 @@ class SheetPanel extends React.Component {
     }
     saveAPI = async (id) => {
         let exposedCollectedData = this.exposeCollectedData(this.props.collectedData);
+        console.log(exposedCollectedData);
         const response = await fetch(rootURL + 'saveSheet/' + id, {
             method: 'POST',
             headers: {
@@ -139,21 +160,29 @@ class SheetPanel extends React.Component {
         return body;
     };
     exposeCollectedData(data) {
-        let myArr = [];
-        for (const [entryKey, value] of data.getEntries()) {
-            let entryObj = { entryKey: entryKey };
-            if (entryKey != 'spreadsheet' && !/.col./.test(entryKey)) entryObj.row = value.getRow();
-            else if (/.col./.test(entryKey)) {
-                entryObj.row = value.getCellRow();
-                entryObj.col = value.getCellCol();
-                entryObj.val = value.getVal();
-            }
-            entryObj.styleMap = [...[...value.getStyleMap().entries()].map(styleEntry => {
-                return { property: styleEntry[0], value: styleEntry[1] }
+        let individualArr = [];
+        for (const [entryKey, value] of data.getIndividualEntries()) {
+            let individual = { entryKey: entryKey };
+            individual.styleMap = [...[...value.getStyleMap().entries()].map(styleEntry => {
+                return [styleEntry[0], styleEntry[1]];
             })];
-            myArr.push(entryObj);
+            if (entryKey != 'spreadsheet' && !/.col\d+/.test(entryKey)) individual.row = value.getRow();
+            else if (/.col\d+/.test(entryKey)) {
+                individual.row = value.getCellRow();
+                individual.col = value.getCellCol();
+                individual.val = value.getVal();
+            }
+            individualArr.push(individual);
         }
-        return myArr;
+        let groupArr = [];
+        for (const [groupName, styleMap] of data.getGroupEntries()) {
+            let group = { groupName: groupName };
+            group.styleMap = [...[...styleMap.entries()].map(styleEntry => {
+                return [styleEntry[0], styleEntry[1]];
+            })];
+            groupArr.push(group);
+        }
+        return { individualData: individualArr, groupData: groupArr };
     }
 }
 const SheetContainer = connect(mapStateToProps, mapDispatchToProps)(SheetPanel);

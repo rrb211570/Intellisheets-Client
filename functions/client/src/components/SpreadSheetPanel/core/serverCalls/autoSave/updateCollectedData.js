@@ -12,7 +12,7 @@ function updateCollectedData(dataAfterChange, prevCollectedData) {
         if (entryKey != 'spreadsheet' && !/\.col\d+/.test(entryKey)) args.push(data.getRow());
         if (/\.col\d+/.test(entryKey)) {
             args.push(data.getCellRow(), data.getCellCol());
-            if (prevCollectedData.hasIndividualEntry(entryKey)) args.push(prevData.getIndividualEntry(entryKey).getVal());
+            if (prevCollectedData.hasIndividualEntry(entryKey)) args.push(prevCollectedData.getIndividualEntry(entryKey).getVal());
             else args.push(data.getVal());
         }
         updatedCollectedData.setIndividualEntry(...args);

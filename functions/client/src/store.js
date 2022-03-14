@@ -3,6 +3,7 @@ import Data from './components/SpreadSheetPanel/core/history/data.js'
 const NEWSTATE = 'NEWSTATE';
 const UNDO = 'UNDO';
 const REDO = 'REDO';
+const CLEARHISTORYSTATE = 'CLEARHISTORYSTATE';
 const UPDATESELECTED = 'UPDATESELECTED';
 const UPDATESHEETDIMENSIONS = 'UPDATESHEETDIMENSIONS';
 const SAVE = 'SAVE';
@@ -32,6 +33,12 @@ const historyReducer = (state = {
             changeHistoryIndex: state.changeHistoryIndex + 1,
             collectedData: action.collectedData,
             sentData: state.sentData
+        }
+        case CLEARHISTORYSTATE: return {
+            changeHistory: [new Data()],
+            changeHistoryIndex: 0,
+            collectedData: new Data(),
+            sentData: new Data()
         }
         case SAVE: return {
             changeHistory: state.changeHistory,
@@ -100,6 +107,9 @@ const mapDispatchToProps = (dispatch) => {
         redo: (collectedData) => {
             dispatch(redo(collectedData));
         },
+        clearHistoryState: () => {
+            dispatch(clearHistoryState());
+        },
         updateSelected: (entries) => {
             dispatch(updateSelectedEntries(entries));
         },
@@ -136,6 +146,12 @@ const redo = (collectedData) => {
     }
 }
 
+const clearHistoryState = () => {
+    return {
+        type: CLEARHISTORYSTATE
+    }
+}
+
 const updateSelectedEntries = (entries) => {
     return {
         type: UPDATESELECTED,
@@ -159,4 +175,4 @@ const saveSheet = () => {
 
 const store = createStore(rootReducer);
 
-export { store, mapStateToProps, mapDispatchToProps, updateSheetDimensions};
+export { store, mapStateToProps, mapDispatchToProps, updateSheetDimensions, clearHistoryState};

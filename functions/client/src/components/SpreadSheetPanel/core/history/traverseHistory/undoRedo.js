@@ -1,4 +1,4 @@
-import { updateSheetDimensions, applyChange } from './applyChange.js';
+import { updateSheetDimensions, applyChange, applyGroupChange} from './applyChange.js';
 import updateCollectedData from '../../serverCalls/autoSave/updateCollectedData';
 
 function undo() {
@@ -13,6 +13,9 @@ function undo() {
                 let entry = document.querySelector(entryKey.match(/\.row\d+\.col\d+$/));
                 applyChange(entry, data.getStyleMap(), data.getVal());
             }
+        }
+        for(const [group, styleMap] of this.props.changeHistory[this.props.changeHistoryIndex - 1].getGroupEntries()){
+            applyGroupChange(group, styleMap);
         }
         updatedCollectedData = updateCollectedData(this.props.changeHistory[this.props.changeHistoryIndex - 1], this.props.collectedData);
         console.log('Undo\nchangeHistoryIndex: ' + (this.props.changeHistoryIndex - 1));
@@ -33,6 +36,9 @@ function redo() {
                 let entry = document.querySelector(entryKey.match(/\.row\d+\.col\d+$/));
                 applyChange(entry, data.getStyleMap(), data.getVal())
             }
+        }
+        for(const [group, styleMap] of this.props.changeHistory[this.props.changeHistoryIndex + 1].getGroupEntries()){
+            applyGroupChange(group, styleMap);
         }
         updatedCollectedData = updateCollectedData(this.props.changeHistory[this.props.changeHistoryIndex + 1], this.props.collectedData);
         console.log('Redo\nchangeHistoryIndex: ' + (this.props.changeHistoryIndex + 1));

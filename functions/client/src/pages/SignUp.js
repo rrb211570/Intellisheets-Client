@@ -30,7 +30,7 @@ class EntryPanel extends React.Component {
                         <p id='pass2Context' style={{ visibility: 'hidden' }}>Passwords must match</p>
                         <p id='createContext' style={{ visibility: 'hidden' }}>* Username is taken *</p>
                         <button id='createAcct' style={{ margin: '10% 10% 0% 10%', visibility: 'hidden' }} disabled onClick={this.signUpHandler} >Create Account</button>
-                        <button style={{ margin: '10% 10% 0% 10%' }} onClick={this.backToHome}>Back to Home</button>
+                        <button id='back' style={{ margin: '10% 10% 0% 10%' }} onClick={this.backToHome}>Back to Home</button>
                     </div>
                 </div>
             </div>
@@ -107,14 +107,22 @@ class EntryPanel extends React.Component {
         let user = document.querySelector('#userInput').value;
         let pass = document.querySelector('#passInput').value;
         console.log('login credentials: ' + user + ' ' + pass);
+        document.querySelector('#createAcct').setAttribute('disabled', 'disabled');
+        document.querySelector('#back').setAttribute('disabled', 'disabled');
         this.createUserIfAvailable(user, pass)
             .then(res => {
                 console.log(res);
                 if (res.status == 'success' & res.usernameAvailable) this.props.nav('/confirmCode/' + user);
-                else document.querySelector('#createContext').style.visibility = 'visible';
+                else {
+                    document.querySelector('#createContext').style.visibility = 'visible';
+                    document.querySelector('#createAcct').removeAttribute('disabled');
+                    document.querySelector('#back').removeAttribute('disabled');
+                }
             })
             .catch(err => {
                 console.log('signUp API error: ' + err);
+                document.querySelector('#createAcct').removeAttribute('disabled');
+                document.querySelector('#back').removeAttribute('disabled');
             });
     }
     createUserIfAvailable = async (user, pass) => {
