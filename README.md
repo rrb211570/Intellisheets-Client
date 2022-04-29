@@ -15,4 +15,4 @@ See demo on my [portfolio](https://portfolio-6cfe3.firebaseapp.com).
 ### App entrypoint is 'functions/client/src/index.js'<br>
 ### The actual components/functionality are in 'functions/client/src/components'
 
-(See sibling repo called 'Intellisheets-Server' for server code; however, most of the project-work is on this repo).
+(Most of the project-work is on this repo. See sibling repo called 'Intellisheets-Server' for server code if you're interested.)
