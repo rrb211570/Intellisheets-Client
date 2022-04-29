@@ -6,7 +6,7 @@ As I found it difficult to make editing, and resize the tables the way I wanted 
 
 Since I saw how easy it was to do resizing, I was motivated to ugrade the project to be a full-lifecycle spreadsheet editor (user signup/login, sheet manager, MVP editor w/ persistent storage).
 
-See demo on my [portfolio](portfolio-6cfe3.firebaseapp.com).
+See demo on my [portfolio](https://portfolio-6cfe3.firebaseapp.com).
 
 ### POSSIBLE FUTURE UPDATES :
 1. Open-source SpreadsheetPanel
