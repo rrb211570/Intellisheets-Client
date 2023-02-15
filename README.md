@@ -1,4 +1,4 @@
-# Intellisheets
+# Intellisheets (Outdated, current repo is private)
 
 The original purpose of this app was to store a couple edit-friendly tracking tables in one place, and learn about JS-related stuff (React, Node, MongoDB, etc) in the process.
 
